@@ -59,3 +59,56 @@ export function serializeUserSkill(userSkill: UserSkillWithSkill) {
     skill: userSkill.skill
   };
 }
+
+type MatchWithRelations = {
+  id: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  requesterId: string;
+  receiverId: string;
+  requesterOfferSkill: {
+    id: string;
+    name: string;
+    category: string | null;
+    icon: string | null;
+  };
+  requesterWantSkill: {
+    id: string;
+    name: string;
+    category: string | null;
+    icon: string | null;
+  };
+  requester: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    city: string | null;
+  };
+  receiver: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    city: string | null;
+  };
+  conversation?: {
+    id: string;
+    createdAt: Date;
+  } | null;
+};
+
+export function serializeMatch(match: MatchWithRelations) {
+  return {
+    id: match.id,
+    status: match.status,
+    createdAt: match.createdAt,
+    updatedAt: match.updatedAt,
+    requesterId: match.requesterId,
+    receiverId: match.receiverId,
+    requester: match.requester,
+    receiver: match.receiver,
+    requesterOfferSkill: match.requesterOfferSkill,
+    requesterWantSkill: match.requesterWantSkill,
+    conversation: match.conversation ?? null
+  };
+}
