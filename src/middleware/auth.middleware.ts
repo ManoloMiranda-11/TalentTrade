@@ -1,14 +1,14 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-type JwtPayload = {
+export type AuthenticatedUser = {
   sub: string;
   email: string;
 };
 
 declare module "express-serve-static-core" {
   interface Request {
-    user?: JwtPayload;
+    user?: AuthenticatedUser;
   }
 }
 
@@ -27,7 +27,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   }
 
   try {
-    const payload = jwt.verify(token, secret) as JwtPayload;
+    const payload = jwt.verify(token, secret) as AuthenticatedUser;
     req.user = payload;
     next();
   } catch {
