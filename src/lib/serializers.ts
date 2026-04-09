@@ -112,3 +112,29 @@ export function serializeMatch(match: MatchWithRelations) {
     conversation: match.conversation ?? null
   };
 }
+
+type MessageWithSender = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  isRead: boolean;
+  createdAt: Date;
+  sender: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+};
+
+export function serializeMessage(message: MessageWithSender) {
+  return {
+    id: message.id,
+    conversationId: message.conversationId,
+    senderId: message.senderId,
+    content: message.content,
+    isRead: message.isRead,
+    createdAt: message.createdAt,
+    sender: message.sender
+  };
+}
