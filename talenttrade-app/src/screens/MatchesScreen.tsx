@@ -1,13 +1,16 @@
+import { useNavigation, type NavigationProp } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert, Pressable, Text, View } from "react-native";
 
 import { apiFetch } from "../api/client";
 import { Card } from "../components/Card";
 import { Screen } from "../components/Screen";
+import type { RootStackParamList } from "../navigation/types";
 import { useAuth } from "../providers/AuthProvider";
 import type { MatchItem } from "../types/api";
 
 export function MatchesScreen() {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { token, user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -44,6 +47,7 @@ export function MatchesScreen() {
       {matchesQuery.data?.coincidencias?.map((item) => {
         const isReceiver = item.receptorId === user?.id;
         const otherPerson = item.solicitanteId === user?.id ? item.receptor : item.solicitante;
+        const conversationId = item.conversacion?.id;
 
         return (
           <Card key={item.id}>
@@ -54,6 +58,25 @@ export function MatchesScreen() {
             </Text>
             {item.conversacion ? (
               <Text style={{ color: "#6a5a1c" }}>Conversacion activa: {item.conversacion.id.slice(0, 8)}...</Text>
+            ) : null}
+
+            {item.estado === "ACCEPTED" && conversationId ? (
+              <Pressable
+                onPress={() =>
+                  navigation.navigate("Chat", {
+                    conversationId,
+                    title: otherPerson.name
+                  })
+                }
+                style={{
+                  backgroundColor: "#7c2d12",
+                  paddingVertical: 14,
+                  borderRadius: 16,
+                  alignItems: "center"
+                }}
+              >
+                <Text style={{ color: "#fff4e8", fontWeight: "700" }}>Abrir chat</Text>
+              </Pressable>
             ) : null}
 
             {item.estado === "PENDING" && isReceiver ? (

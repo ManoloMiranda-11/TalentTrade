@@ -77,3 +77,63 @@ export type MatchItem = {
     createdAt: string;
   } | null;
 };
+
+export type MessageItem = {
+  id: string;
+  conversacionId: string;
+  remitenteId: string;
+  contenido: string;
+  leido: boolean;
+  fechaCreacion: string;
+  remitente: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+};
+
+export type SessionItem = {
+  id: string;
+  matchId: string;
+  habilidadId: string;
+  profesorId: string;
+  aprendizId: string;
+  fechaProgramada: string;
+  duracionMinutos: number;
+  estado: "SCHEDULED" | "COMPLETED" | "CANCELLED";
+  fechaCreacion: string;
+  fechaActualizacion: string;
+  habilidad: Skill;
+  profesor: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    city: string | null;
+  };
+  aprendiz: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    city: string | null;
+  };
+};
+
+export type ReviewItem = {
+  id: string;
+  sesionId: string;
+  autorId: string;
+  valoradoId: string;
+  puntuacion: number;
+  comentario: string | null;
+  fechaCreacion: string;
+  autor: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+  valorado: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+};

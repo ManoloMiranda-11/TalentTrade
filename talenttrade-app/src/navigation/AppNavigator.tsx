@@ -4,14 +4,17 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import { useAuth } from "../providers/AuthProvider";
+import { ChatScreen } from "../screens/ChatScreen";
 import { DiscoverScreen } from "../screens/DiscoverScreen";
 import { LoginScreen } from "../screens/LoginScreen";
 import { MatchesScreen } from "../screens/MatchesScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { RegisterScreen } from "../screens/RegisterScreen";
+import { SessionsScreen } from "../screens/SessionsScreen";
 import { SkillsScreen } from "../screens/SkillsScreen";
+import type { RootStackParamList } from "./types";
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
 
 function TabsNavigator() {
@@ -32,6 +35,7 @@ function TabsNavigator() {
     >
       <Tab.Screen name="Descubrir" component={DiscoverScreen} />
       <Tab.Screen name="Coincidencias" component={MatchesScreen} />
+      <Tab.Screen name="Sesiones" component={SessionsScreen} />
       <Tab.Screen name="Habilidades" component={SkillsScreen} />
       <Tab.Screen name="Perfil" component={ProfileScreen} />
     </Tab.Navigator>
@@ -84,7 +88,10 @@ export function AppNavigator() {
         }}
       >
         {token ? (
-          <Stack.Screen name="TalentTrade" component={TabsNavigator} options={{ headerShown: false }} />
+          <>
+            <Stack.Screen name="TalentTrade" component={TabsNavigator} options={{ headerShown: false }} />
+            <Stack.Screen name="Chat" component={ChatScreen} />
+          </>
         ) : (
           <>
             <Stack.Screen name="Entrar" component={LoginScreen} />
