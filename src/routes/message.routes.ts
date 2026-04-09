@@ -78,8 +78,8 @@ messageRouter.get("/:conversationId", requireAuth, async (req, res) => {
   });
 
   return res.status(200).json({
-    conversationId,
-    messages: messages.map(serializeMessage)
+    conversacionId: conversationId,
+    mensajes: messages.map(serializeMessage)
   });
 });
 
@@ -115,6 +115,6 @@ messageRouter.post("/:conversationId", requireAuth, async (req, res) => {
 
   return res.status(201).json({
     message: "Mensaje enviado correctamente.",
-    data: serializeMessage(message)
+    datos: serializeMessage(message)
   });
 });

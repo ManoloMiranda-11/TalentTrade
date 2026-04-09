@@ -196,7 +196,7 @@ matchRouter.get("/discover", requireAuth, async (req, res) => {
   });
 
   return res.status(200).json({
-    matches: suggestions
+    coincidencias: suggestions
   });
 });
 
@@ -236,12 +236,12 @@ matchRouter.get("/me", requireAuth, async (req, res) => {
   const serializedMatches = matches.map(serializeMatch);
 
   return res.status(200).json({
-    matches: serializedMatches,
-    grouped: {
-      pending: serializedMatches.filter((match) => match.status === "PENDING"),
-      accepted: serializedMatches.filter((match) => match.status === "ACCEPTED"),
-      rejected: serializedMatches.filter((match) => match.status === "REJECTED"),
-      cancelled: serializedMatches.filter((match) => match.status === "CANCELLED")
+    coincidencias: serializedMatches,
+    agrupadas: {
+      pendientes: serializedMatches.filter((match) => match.estado === "PENDING"),
+      aceptadas: serializedMatches.filter((match) => match.estado === "ACCEPTED"),
+      rechazadas: serializedMatches.filter((match) => match.estado === "REJECTED"),
+      canceladas: serializedMatches.filter((match) => match.estado === "CANCELLED")
     }
   });
 });
@@ -361,7 +361,7 @@ matchRouter.post("/", requireAuth, async (req, res) => {
   if (existingMatch) {
     return res.status(409).json({
       message: "Ya existe un match para este intercambio.",
-      match: serializeMatch(existingMatch)
+      coincidencia: serializeMatch(existingMatch)
     });
   }
 
@@ -396,8 +396,8 @@ matchRouter.post("/", requireAuth, async (req, res) => {
   });
 
   return res.status(201).json({
-    message: "Solicitud de match creada correctamente.",
-    match: serializeMatch(match)
+    message: "Solicitud de intercambio creada correctamente.",
+    coincidencia: serializeMatch(match)
   });
 });
 
@@ -457,8 +457,8 @@ matchRouter.patch("/:matchId/status", requireAuth, async (req, res) => {
 
   if (existingMatch.status === MatchStatus.ACCEPTED && status === MatchStatus.ACCEPTED) {
     return res.status(200).json({
-      message: "El match ya estaba aceptado.",
-      match: serializeMatch(existingMatch)
+      message: "La coincidencia ya estaba aceptada.",
+      coincidencia: serializeMatch(existingMatch)
     });
   }
 
@@ -526,7 +526,7 @@ matchRouter.patch("/:matchId/status", requireAuth, async (req, res) => {
   });
 
   return res.status(200).json({
-    message: "Estado del match actualizado correctamente.",
-    match: serializeMatch(updatedMatch)
+    message: "Estado de la coincidencia actualizado correctamente.",
+    coincidencia: serializeMatch(updatedMatch)
   });
 });

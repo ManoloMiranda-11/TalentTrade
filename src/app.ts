@@ -22,9 +22,9 @@ app.use(express.json());
 
 app.get("/health", (_req, res) => {
   res.status(200).json({
-    ok: true,
-    service: "talenttrade-backend",
-    timestamp: new Date().toISOString()
+    estado: "ok",
+    servicio: "talenttrade-backend",
+    fechaHora: new Date().toISOString()
   });
 });
 

@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { availabilityRouter } from "./availability.routes.js";
 import { authRouter } from "./auth.routes.js";
 import { matchRouter } from "./match.routes.js";
 import { messageRouter } from "./message.routes.js";
@@ -12,6 +13,7 @@ export const apiRouter = Router();
 
 apiRouter.use("/auth", authRouter);
 apiRouter.use("/users", userRouter);
+apiRouter.use("/availability", availabilityRouter);
 apiRouter.use("/skills", skillRouter);
 apiRouter.use("/matches", matchRouter);
 apiRouter.use("/messages", messageRouter);

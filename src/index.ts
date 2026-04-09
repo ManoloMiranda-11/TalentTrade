@@ -17,5 +17,5 @@ const io = new Server(server, {
 registerSocketHandlers(io);
 
 server.listen(port, () => {
-  console.log(`TalentTrade backend escuchando en http://localhost:${port}`);
+  console.log(`Servidor de TalentTrade escuchando en http://localhost:${port}`);
 });

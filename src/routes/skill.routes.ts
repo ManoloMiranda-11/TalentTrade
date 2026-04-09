@@ -20,7 +20,7 @@ skillRouter.get("/", async (_req, res) => {
   });
 
   return res.status(200).json({
-    skills
+    habilidades: skills
   });
 });
 

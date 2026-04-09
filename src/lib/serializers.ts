@@ -41,10 +41,10 @@ export function serializeUserProfile(user: UserProfilePayload) {
     longitude: user.longitude,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
-    skillsOffered: userSkills
+    habilidadesOfrecidas: userSkills
       .filter((userSkill) => userSkill.type === "OFFER")
       .map(serializeUserSkill),
-    skillsWanted: userSkills
+    habilidadesDeseadas: userSkills
       .filter((userSkill) => userSkill.type === "WANT")
       .map(serializeUserSkill)
   };
@@ -100,16 +100,16 @@ type MatchWithRelations = {
 export function serializeMatch(match: MatchWithRelations) {
   return {
     id: match.id,
-    status: match.status,
+    estado: match.status,
     createdAt: match.createdAt,
     updatedAt: match.updatedAt,
-    requesterId: match.requesterId,
-    receiverId: match.receiverId,
-    requester: match.requester,
-    receiver: match.receiver,
-    requesterOfferSkill: match.requesterOfferSkill,
-    requesterWantSkill: match.requesterWantSkill,
-    conversation: match.conversation ?? null
+    solicitanteId: match.requesterId,
+    receptorId: match.receiverId,
+    solicitante: match.requester,
+    receptor: match.receiver,
+    habilidadOfrecidaPorSolicitante: match.requesterOfferSkill,
+    habilidadSolicitadaPorSolicitante: match.requesterWantSkill,
+    conversacion: match.conversation ?? null
   };
 }
 
@@ -130,11 +130,119 @@ type MessageWithSender = {
 export function serializeMessage(message: MessageWithSender) {
   return {
     id: message.id,
-    conversationId: message.conversationId,
-    senderId: message.senderId,
-    content: message.content,
-    isRead: message.isRead,
-    createdAt: message.createdAt,
-    sender: message.sender
+    conversacionId: message.conversationId,
+    remitenteId: message.senderId,
+    contenido: message.content,
+    leido: message.isRead,
+    fechaCreacion: message.createdAt,
+    remitente: message.sender
+  };
+}
+
+type SessionWithRelations = {
+  id: string;
+  matchId: string;
+  skillTaughtId: string;
+  teacherId: string;
+  learnerId: string;
+  scheduledAt: Date;
+  durationMinutes: number;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  skillTaught: {
+    id: string;
+    name: string;
+    category: string | null;
+    icon: string | null;
+  };
+  teacher: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    city: string | null;
+  };
+  learner: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    city: string | null;
+  };
+  match?: {
+    id: string;
+    status: string;
+  };
+};
+
+export function serializeSession(session: SessionWithRelations) {
+  return {
+    id: session.id,
+    matchId: session.matchId,
+    habilidadId: session.skillTaughtId,
+    profesorId: session.teacherId,
+    aprendizId: session.learnerId,
+    fechaProgramada: session.scheduledAt,
+    duracionMinutos: session.durationMinutes,
+    estado: session.status,
+    fechaCreacion: session.createdAt,
+    fechaActualizacion: session.updatedAt,
+    habilidad: session.skillTaught,
+    profesor: session.teacher,
+    aprendiz: session.learner,
+    coincidencia: session.match ?? null
+  };
+}
+
+type ReviewWithRelations = {
+  id: string;
+  sessionId: string;
+  reviewerId: string;
+  reviewedId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: Date;
+  reviewer: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+  reviewed: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+};
+
+export function serializeReview(review: ReviewWithRelations) {
+  return {
+    id: review.id,
+    sesionId: review.sessionId,
+    autorId: review.reviewerId,
+    valoradoId: review.reviewedId,
+    puntuacion: review.rating,
+    comentario: review.comment,
+    fechaCreacion: review.createdAt,
+    autor: review.reviewer,
+    valorado: review.reviewed
+  };
+}
+
+type AvailabilityPayload = {
+  id: string;
+  userId: string;
+  dayOfWeek: string;
+  startTime: Date;
+  endTime: Date;
+  createdAt: Date;
+};
+
+export function serializeAvailability(availability: AvailabilityPayload) {
+  return {
+    id: availability.id,
+    usuarioId: availability.userId,
+    diaSemana: availability.dayOfWeek,
+    horaInicio: availability.startTime,
+    horaFin: availability.endTime,
+    fechaCreacion: availability.createdAt
   };
 }
