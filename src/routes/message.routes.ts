@@ -46,6 +46,19 @@ messageRouter.get("/:conversationId", requireAuth, async (req, res) => {
     });
   }
 
+  await prisma.message.updateMany({
+    where: {
+      conversationId,
+      senderId: {
+        not: currentUserId
+      },
+      isRead: false
+    },
+    data: {
+      isRead: true
+    }
+  });
+
   const messages = await prisma.message.findMany({
     where: {
       conversationId
@@ -61,19 +74,6 @@ messageRouter.get("/:conversationId", requireAuth, async (req, res) => {
     },
     orderBy: {
       createdAt: "asc"
-    }
-  });
-
-  await prisma.message.updateMany({
-    where: {
-      conversationId,
-      senderId: {
-        not: currentUserId
-      },
-      isRead: false
-    },
-    data: {
-      isRead: true
     }
   });
 
