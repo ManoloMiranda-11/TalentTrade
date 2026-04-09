@@ -3,6 +3,8 @@ import { Alert, Pressable, Text, View } from "react-native";
 
 import { apiFetch } from "../api/client";
 import { Card } from "../components/Card";
+import { EmptyState } from "../components/EmptyState";
+import { HeroCard } from "../components/HeroCard";
 import { Screen } from "../components/Screen";
 import { useAuth } from "../providers/AuthProvider";
 import type { MatchSuggestion } from "../types/api";
@@ -35,16 +37,22 @@ export function DiscoverScreen() {
 
   return (
     <Screen scroll>
-      <View style={{ gap: 8 }}>
-        <Text style={{ fontSize: 30, fontWeight: "800", color: "#10253d" }}>Descubrir</Text>
-        <Text style={{ color: "#5f6f81", lineHeight: 22 }}>
-          Aqui aparecen personas compatibles segun lo que ofreces y lo que quieres aprender.
-        </Text>
-      </View>
+      <HeroCard
+        title="Descubrir"
+        subtitle="Aqui aparecen personas compatibles segun lo que ofreces y lo que quieres aprender."
+      />
 
-      {discoverQuery.isLoading ? <Text>Cargando coincidencias...</Text> : null}
+      {discoverQuery.isLoading ? (
+        <EmptyState
+          title="Buscando coincidencias"
+          description="Estamos revisando perfiles compatibles para proponerte nuevos intercambios."
+        />
+      ) : null}
       {discoverQuery.error ? (
-        <Text style={{ color: "#b23b3b" }}>{discoverQuery.error instanceof Error ? discoverQuery.error.message : "Error"}</Text>
+        <EmptyState
+          title="No se pudieron cargar las coincidencias"
+          description={discoverQuery.error instanceof Error ? discoverQuery.error.message : "Ha ocurrido un error inesperado."}
+        />
       ) : null}
 
       {discoverQuery.data?.coincidencias?.map((item) => (
@@ -85,11 +93,10 @@ export function DiscoverScreen() {
       ))}
 
       {!discoverQuery.isLoading && !discoverQuery.data?.coincidencias?.length ? (
-        <Card>
-          <Text style={{ color: "#30445a" }}>
-            {discoverQuery.data?.message ?? "Todavia no hay coincidencias. Asegurate de tener habilidades ofrecidas y deseadas."}
-          </Text>
-        </Card>
+        <EmptyState
+          title="Aun no hay coincidencias"
+          description={discoverQuery.data?.message ?? "Asegurate de tener habilidades ofrecidas y deseadas para empezar a encontrar personas compatibles."}
+        />
       ) : null}
     </Screen>
   );

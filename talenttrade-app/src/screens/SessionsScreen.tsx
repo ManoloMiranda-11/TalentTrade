@@ -3,6 +3,8 @@ import { Alert, Pressable, Text, View } from "react-native";
 
 import { apiFetch } from "../api/client";
 import { Card } from "../components/Card";
+import { EmptyState } from "../components/EmptyState";
+import { HeroCard } from "../components/HeroCard";
 import { Screen } from "../components/Screen";
 import { useAuth } from "../providers/AuthProvider";
 import type { ReviewItem, SessionItem } from "../types/api";
@@ -64,12 +66,17 @@ export function SessionsScreen() {
 
   return (
     <Screen scroll>
-      <View style={{ gap: 8 }}>
-        <Text style={{ fontSize: 30, fontWeight: "800", color: "#10253d" }}>Sesiones</Text>
-        <Text style={{ color: "#5f6f81", lineHeight: 22 }}>
-          Aqui puedes seguir tus intercambios programados, marcarlos como completados y valorar la experiencia.
-        </Text>
-      </View>
+      <HeroCard
+        title="Sesiones"
+        subtitle="Aqui puedes seguir tus intercambios programados, marcarlos como completados y valorar la experiencia."
+      />
+
+      {!(sessionsQuery.data?.sesiones?.length ?? 0) ? (
+        <EmptyState
+          title="Aun no tienes sesiones"
+          description="Cuando una coincidencia avance, podras organizar aqui las sesiones de aprendizaje."
+        />
+      ) : null}
 
       {(sessionsQuery.data?.sesiones ?? []).map((session) => {
         const otherPerson = session.profesorId === user?.id ? session.aprendiz : session.profesor;

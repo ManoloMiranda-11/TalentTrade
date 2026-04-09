@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { Card } from "../components/Card";
 import { FormField } from "../components/FormField";
+import { HeroCard } from "../components/HeroCard";
 import { Screen } from "../components/Screen";
 import { API_URL_HINT } from "../config/api";
 import { useAuth } from "../providers/AuthProvider";
@@ -42,12 +43,10 @@ export function LoginScreen() {
 
   return (
     <Screen scroll>
-      <View style={{ gap: 10, marginTop: 20 }}>
-        <Text style={{ fontSize: 34, fontWeight: "800", color: "#0d2137" }}>TalentTrade</Text>
-        <Text style={{ fontSize: 16, lineHeight: 24, color: "#526174" }}>
-          Intercambia lo que sabes por lo que suenas aprender. Si pruebas desde tu movil, cambia la URL base a tu IP local: {API_URL_HINT}
-        </Text>
-      </View>
+      <HeroCard
+        title="TalentTrade"
+        subtitle={`Intercambia lo que sabes por lo que quieres aprender. Si pruebas desde tu movil, cambia la URL base a tu IP local: ${API_URL_HINT}`}
+      />
 
       <Card>
         <Text style={{ fontSize: 24, fontWeight: "700", color: "#13293f" }}>Entrar</Text>
@@ -98,8 +97,15 @@ export function LoginScreen() {
         </Pressable>
       </Card>
 
-      <Pressable onPress={() => navigation.navigate("Crear cuenta" as never)}>
-        <Text style={{ textAlign: "center", color: "#0d2137", fontWeight: "600" }}>
+      <Pressable
+        onPress={() => navigation.navigate("Crear cuenta" as never)}
+        style={{
+          backgroundColor: "#f0e4cc",
+          paddingVertical: 14,
+          borderRadius: 18
+        }}
+      >
+        <Text style={{ textAlign: "center", color: "#0d2137", fontWeight: "700" }}>
           No tienes cuenta? Crear una ahora
         </Text>
       </Pressable>

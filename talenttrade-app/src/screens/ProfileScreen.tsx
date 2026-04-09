@@ -4,6 +4,7 @@ import { Alert, Pressable, Text, TextInput, View } from "react-native";
 
 import { apiFetch } from "../api/client";
 import { Card } from "../components/Card";
+import { HeroCard } from "../components/HeroCard";
 import { Screen } from "../components/Screen";
 import { useAuth } from "../providers/AuthProvider";
 import type { User } from "../types/api";
@@ -71,7 +72,10 @@ export function ProfileScreen() {
 
   return (
     <Screen scroll>
-      <Text style={{ fontSize: 30, fontWeight: "800", color: "#10253d" }}>Perfil</Text>
+      <HeroCard
+        title="Perfil"
+        subtitle="Cuida tu presentacion para que la comunidad entienda mejor lo que ensenas y lo que buscas aprender."
+      />
 
       <Card>
         <Text style={{ fontSize: 24, fontWeight: "800", color: "#10253d" }}>{profile?.name ?? "Sin nombre"}</Text>
@@ -108,7 +112,7 @@ export function ProfileScreen() {
         <TextInput
           value={bio}
           onChangeText={setBio}
-          placeholder="Cuéntale a la comunidad qué te gusta enseñar o aprender"
+          placeholder="Cuentale a la comunidad que te gusta ensenar o aprender"
           multiline
           style={{
             borderWidth: 1,

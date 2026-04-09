@@ -4,6 +4,8 @@ import { Alert, Pressable, Text, View } from "react-native";
 
 import { apiFetch } from "../api/client";
 import { Card } from "../components/Card";
+import { EmptyState } from "../components/EmptyState";
+import { HeroCard } from "../components/HeroCard";
 import { Screen } from "../components/Screen";
 import type { RootStackParamList } from "../navigation/types";
 import { useAuth } from "../providers/AuthProvider";
@@ -37,12 +39,17 @@ export function MatchesScreen() {
 
   return (
     <Screen scroll>
-      <View style={{ gap: 8 }}>
-        <Text style={{ fontSize: 30, fontWeight: "800", color: "#10253d" }}>Coincidencias</Text>
-        <Text style={{ color: "#5f6f81", lineHeight: 22 }}>
-          Gestiona tus solicitudes pendientes y revisa los intercambios ya aceptados.
-        </Text>
-      </View>
+      <HeroCard
+        title="Coincidencias"
+        subtitle="Gestiona tus solicitudes pendientes y revisa los intercambios ya aceptados."
+      />
+
+      {!matchesQuery.data?.coincidencias?.length ? (
+        <EmptyState
+          title="Todavia no tienes coincidencias"
+          description="Cuando envies o aceptes un intercambio, aparecera aqui para que puedas gestionarlo."
+        />
+      ) : null}
 
       {matchesQuery.data?.coincidencias?.map((item) => {
         const isReceiver = item.receptorId === user?.id;
