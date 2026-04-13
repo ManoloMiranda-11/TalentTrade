@@ -3,19 +3,19 @@ import http from "node:http";
 import { Server } from "socket.io";
 
 import { app } from "./app.js";
-import { registerSocketHandlers } from "./socket/index.js";
+import { registrarManejadoresSocket } from "./tiempoReal/manejadores.js";
 
-const port = Number(process.env.PORT ?? 4000);
-const server = http.createServer(app);
+const puerto = Number(process.env.PORT ?? 4000);
+const servidorHttp = http.createServer(app);
 
-const io = new Server(server, {
+const io = new Server(servidorHttp, {
   cors: {
     origin: process.env.CLIENT_URL ?? "*"
   }
 });
 
-registerSocketHandlers(io);
+registrarManejadoresSocket(io);
 
-server.listen(port, () => {
-  console.log(`Servidor de TalentTrade escuchando en http://localhost:${port}`);
+servidorHttp.listen(puerto, () => {
+  console.log(`Servidor de TalentTrade escuchando en http://localhost:${puerto}`);
 });

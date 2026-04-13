@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const skills = [
+const habilidadesIniciales = [
   { name: "Programacion", category: "Tecnologia", icon: "code" },
   { name: "React", category: "Tecnologia", icon: "atom" },
   { name: "Node.js", category: "Tecnologia", icon: "server" },
@@ -35,24 +35,24 @@ const skills = [
   { name: "Excel", category: "Productividad", icon: "sheet" }
 ];
 
-async function main() {
-  for (const skill of skills) {
+async function cargarHabilidadesIniciales() {
+  for (const habilidad of habilidadesIniciales) {
     await prisma.skill.upsert({
-      where: { name: skill.name },
+      where: { name: habilidad.name },
       update: {
-        category: skill.category,
-        icon: skill.icon
+        category: habilidad.category,
+        icon: habilidad.icon
       },
-      create: skill
+      create: habilidad
     });
   }
 
-  console.log(`Seed completado: ${skills.length} habilidades iniciales.`);
+  console.log(`Seed completado: ${habilidadesIniciales.length} habilidades iniciales.`);
 }
 
-main()
-  .catch((error) => {
-    console.error("Error al ejecutar el seed:", error);
+cargarHabilidadesIniciales()
+  .catch((errorCapturado) => {
+    console.error("Error al ejecutar el seed:", errorCapturado);
     process.exit(1);
   })
   .finally(async () => {

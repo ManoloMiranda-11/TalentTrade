@@ -1,169 +1,233 @@
-@baseUrl = http://localhost:4000
-@token = PEGA_AQUI_TU_TOKEN
-@userId = PEGA_AQUI_OTRO_USER_ID
-@skillIdOferta = PEGA_AQUI_UN_SKILL_ID_QUE_OFREZCAS
-@skillIdDeseada = PEGA_AQUI_UN_SKILL_ID_QUE_QUIERAS
-@matchId = PEGA_AQUI_UN_MATCH_ID
-@conversationId = PEGA_AQUI_UN_CONVERSATION_ID
-@sessionId = PEGA_AQUI_UN_SESSION_ID
-@userSkillId = PEGA_AQUI_UN_USER_SKILL_ID
-@availabilityId = PEGA_AQUI_UN_AVAILABILITY_ID
-@teacherId = PEGA_AQUI_UN_TEACHER_ID
-@learnerId = PEGA_AQUI_UN_LEARNER_ID
+@urlBase = http://localhost:4000
+@tokenPrincipal = PEGA_AQUI_EL_TOKEN_DE_ANA
+@tokenOtraPersona = PEGA_AQUI_EL_TOKEN_DE_CARLOS
+@usuarioOtraPersonaId = PEGA_AQUI_EL_ID_DE_CARLOS
+@habilidadIdOferta = PEGA_AQUI_UN_ID_DE_HABILIDAD_QUE_OFREZCAS
+@habilidadIdDeseada = PEGA_AQUI_UN_ID_DE_HABILIDAD_QUE_QUIERAS
+@coincidenciaId = PEGA_AQUI_UN_ID_DE_COINCIDENCIA
+@conversacionId = PEGA_AQUI_UN_ID_DE_CONVERSACION
+@sesionId = PEGA_AQUI_UN_ID_DE_SESION
+@habilidadUsuarioId = PEGA_AQUI_UN_ID_DE_HABILIDAD_USUARIO
+@disponibilidadId = PEGA_AQUI_UN_ID_DE_DISPONIBILIDAD
+@profesorId = PEGA_AQUI_UN_ID_DE_PROFESOR
+@aprendizId = PEGA_AQUI_UN_ID_DE_APRENDIZ
 
-### Health
-GET {{baseUrl}}/health
+### Estado del servicio
+GET {{urlBase}}/salud
 
-### Registro
-POST {{baseUrl}}/api/auth/register
+### Registro de Ana
+POST {{urlBase}}/api/autenticacion/registro
 Content-Type: application/json
 
 {
-  "email": "ana@example.com",
-  "password": "123456",
-  "name": "Ana"
+  "correo": "ana@talenttrade.es",
+  "contrasena": "123456",
+  "nombre": "Ana"
 }
 
-### Login
-POST {{baseUrl}}/api/auth/login
+### Registro de Carlos
+POST {{urlBase}}/api/autenticacion/registro
 Content-Type: application/json
 
 {
-  "email": "ana@example.com",
-  "password": "123456"
+  "correo": "carlos@talenttrade.es",
+  "contrasena": "123456",
+  "nombre": "Carlos"
 }
 
-### Perfil actual
-GET {{baseUrl}}/api/users/me
-Authorization: Bearer {{token}}
-
-### Editar perfil
-PATCH {{baseUrl}}/api/users/me
-Authorization: Bearer {{token}}
+### Inicio de sesion de Ana
+POST {{urlBase}}/api/autenticacion/inicio-sesion
 Content-Type: application/json
 
 {
-  "bio": "Me encanta aprender y ensenar.",
-  "city": "Madrid"
+  "correo": "ana@talenttrade.es",
+  "contrasena": "123456"
+}
+
+### Inicio de sesion de Carlos
+POST {{urlBase}}/api/autenticacion/inicio-sesion
+Content-Type: application/json
+
+{
+  "correo": "carlos@talenttrade.es",
+  "contrasena": "123456"
+}
+
+### Perfil actual de Ana
+GET {{urlBase}}/api/usuarios/yo
+Authorization: Bearer {{tokenPrincipal}}
+
+### Editar perfil de Ana
+PATCH {{urlBase}}/api/usuarios/yo
+Authorization: Bearer {{tokenPrincipal}}
+Content-Type: application/json
+
+{
+  "biografia": "Me encanta aprender y ensenar con ejemplos sencillos.",
+  "ciudad": "Madrid"
+}
+
+### Editar perfil de Carlos
+PATCH {{urlBase}}/api/usuarios/yo
+Authorization: Bearer {{tokenOtraPersona}}
+Content-Type: application/json
+
+{
+  "biografia": "Me gusta aprender practicando con otras personas.",
+  "ciudad": "Valencia"
 }
 
 ### Listar habilidades
-GET {{baseUrl}}/api/skills
+GET {{urlBase}}/api/habilidades
 
-### Anadir habilidad al usuario
-POST {{baseUrl}}/api/skills/me
-Authorization: Bearer {{token}}
+### Ana ofrece una habilidad
+POST {{urlBase}}/api/habilidades/yo
+Authorization: Bearer {{tokenPrincipal}}
 Content-Type: application/json
 
 {
-  "skillId": "{{skillIdOferta}}",
-  "type": "OFFER",
-  "level": "ADVANCED"
+  "habilidadId": "{{habilidadIdOferta}}",
+  "tipo": "OFRECER",
+  "nivel": "AVANZADO"
+}
+
+### Ana quiere aprender otra habilidad
+POST {{urlBase}}/api/habilidades/yo
+Authorization: Bearer {{tokenPrincipal}}
+Content-Type: application/json
+
+{
+  "habilidadId": "{{habilidadIdDeseada}}",
+  "tipo": "APRENDER",
+  "nivel": "MEDIO"
+}
+
+### Carlos ofrece la habilidad que Ana quiere aprender
+POST {{urlBase}}/api/habilidades/yo
+Authorization: Bearer {{tokenOtraPersona}}
+Content-Type: application/json
+
+{
+  "habilidadId": "{{habilidadIdDeseada}}",
+  "tipo": "OFRECER",
+  "nivel": "MEDIO"
+}
+
+### Carlos quiere aprender la habilidad que Ana ofrece
+POST {{urlBase}}/api/habilidades/yo
+Authorization: Bearer {{tokenOtraPersona}}
+Content-Type: application/json
+
+{
+  "habilidadId": "{{habilidadIdOferta}}",
+  "tipo": "APRENDER",
+  "nivel": "INICIAL"
 }
 
 ### Eliminar habilidad del usuario
-DELETE {{baseUrl}}/api/skills/me/{{userSkillId}}
-Authorization: Bearer {{token}}
+DELETE {{urlBase}}/api/habilidades/yo/{{habilidadUsuarioId}}
+Authorization: Bearer {{tokenPrincipal}}
 
-### Descubrir coincidencias
-GET {{baseUrl}}/api/matches/discover
-Authorization: Bearer {{token}}
+### Descubrir intercambios compatibles para Ana
+GET {{urlBase}}/api/coincidencias/descubrir
+Authorization: Bearer {{tokenPrincipal}}
 
-### Listar mis coincidencias
-GET {{baseUrl}}/api/matches/me
-Authorization: Bearer {{token}}
-
-### Crear coincidencia
-POST {{baseUrl}}/api/matches
-Authorization: Bearer {{token}}
+### Crear solicitud de intercambio de Ana a Carlos
+POST {{urlBase}}/api/coincidencias
+Authorization: Bearer {{tokenPrincipal}}
 Content-Type: application/json
 
 {
-  "receiverId": "{{userId}}",
-  "requesterOfferSkillId": "{{skillIdOferta}}",
-  "requesterWantSkillId": "{{skillIdDeseada}}"
+  "receptorId": "{{usuarioOtraPersonaId}}",
+  "habilidadOfrecidaId": "{{habilidadIdOferta}}",
+  "habilidadDeseadaId": "{{habilidadIdDeseada}}"
 }
 
-### Aceptar coincidencia
-PATCH {{baseUrl}}/api/matches/{{matchId}}/status
-Authorization: Bearer {{token}}
+### Listar coincidencias de Ana
+GET {{urlBase}}/api/coincidencias/yo
+Authorization: Bearer {{tokenPrincipal}}
+
+### Carlos acepta la solicitud
+PATCH {{urlBase}}/api/coincidencias/{{coincidenciaId}}/estado
+Authorization: Bearer {{tokenOtraPersona}}
 Content-Type: application/json
 
 {
-  "status": "ACCEPTED"
+  "estado": "ACEPTADA"
 }
 
-### Ver mensajes
-GET {{baseUrl}}/api/messages/{{conversationId}}
-Authorization: Bearer {{token}}
+### Ver conversacion
+GET {{urlBase}}/api/mensajes/{{conversacionId}}
+Authorization: Bearer {{tokenPrincipal}}
 
 ### Enviar mensaje
-POST {{baseUrl}}/api/messages/{{conversationId}}
-Authorization: Bearer {{token}}
+POST {{urlBase}}/api/mensajes/{{conversacionId}}
+Authorization: Bearer {{tokenPrincipal}}
 Content-Type: application/json
 
 {
-  "content": "Hola, te viene bien el jueves por la tarde?"
+  "contenido": "Hola, te viene bien organizar una sesion esta semana?"
 }
 
-### Crear sesion
-POST {{baseUrl}}/api/sessions
-Authorization: Bearer {{token}}
+### Ver disponibilidad de Ana
+GET {{urlBase}}/api/disponibilidad/yo
+Authorization: Bearer {{tokenPrincipal}}
+
+### Crear disponibilidad de Ana
+POST {{urlBase}}/api/disponibilidad/yo
+Authorization: Bearer {{tokenPrincipal}}
 Content-Type: application/json
 
 {
-  "matchId": "{{matchId}}",
-  "skillTaughtId": "{{skillIdOferta}}",
-  "teacherId": "{{teacherId}}",
-  "learnerId": "{{learnerId}}",
-  "scheduledAt": "2026-04-15T18:00:00.000Z",
-  "durationMinutes": 60
-}
-
-### Listar mis sesiones
-GET {{baseUrl}}/api/sessions/me
-Authorization: Bearer {{token}}
-
-### Completar sesion
-PATCH {{baseUrl}}/api/sessions/{{sessionId}}/status
-Authorization: Bearer {{token}}
-Content-Type: application/json
-
-{
-  "status": "COMPLETED"
-}
-
-### Crear valoracion
-POST {{baseUrl}}/api/reviews
-Authorization: Bearer {{token}}
-Content-Type: application/json
-
-{
-  "sessionId": "{{sessionId}}",
-  "reviewedId": "{{userId}}",
-  "rating": 5,
-  "comment": "Muy buena experiencia."
-}
-
-### Ver mis valoraciones
-GET {{baseUrl}}/api/reviews/me
-Authorization: Bearer {{token}}
-
-### Ver mi disponibilidad
-GET {{baseUrl}}/api/availability/me
-Authorization: Bearer {{token}}
-
-### Crear disponibilidad
-POST {{baseUrl}}/api/availability/me
-Authorization: Bearer {{token}}
-Content-Type: application/json
-
-{
-  "dayOfWeek": "MON",
-  "startTime": "18:00",
-  "endTime": "20:00"
+  "diaSemana": "MON",
+  "horaInicio": "18:00",
+  "horaFin": "20:00"
 }
 
 ### Eliminar disponibilidad
-DELETE {{baseUrl}}/api/availability/me/{{availabilityId}}
-Authorization: Bearer {{token}}
+DELETE {{urlBase}}/api/disponibilidad/yo/{{disponibilidadId}}
+Authorization: Bearer {{tokenPrincipal}}
+
+### Crear sesion
+POST {{urlBase}}/api/sesiones
+Authorization: Bearer {{tokenPrincipal}}
+Content-Type: application/json
+
+{
+  "coincidenciaId": "{{coincidenciaId}}",
+  "habilidadId": "{{habilidadIdOferta}}",
+  "profesorId": "{{profesorId}}",
+  "aprendizId": "{{aprendizId}}",
+  "fechaProgramada": "2026-04-15T18:00:00.000Z",
+  "duracionMinutos": 60
+}
+
+### Listar mis sesiones
+GET {{urlBase}}/api/sesiones/yo
+Authorization: Bearer {{tokenPrincipal}}
+
+### Completar sesion
+PATCH {{urlBase}}/api/sesiones/{{sesionId}}/estado
+Authorization: Bearer {{tokenPrincipal}}
+Content-Type: application/json
+
+{
+  "estado": "COMPLETADA"
+}
+
+### Crear valoracion
+POST {{urlBase}}/api/valoraciones
+Authorization: Bearer {{tokenOtraPersona}}
+Content-Type: application/json
+
+{
+  "sesionId": "{{sesionId}}",
+  "valoradoId": "{{profesorId}}",
+  "puntuacion": 5,
+  "comentario": "Muy buena experiencia."
+}
+
+### Ver valoraciones de Ana
+GET {{urlBase}}/api/valoraciones/yo
+Authorization: Bearer {{tokenPrincipal}}
+

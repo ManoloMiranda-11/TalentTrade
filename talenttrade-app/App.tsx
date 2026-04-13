@@ -1,13 +1,13 @@
 import { StatusBar } from "expo-status-bar";
 
-import { AppNavigator } from "./src/navigation/AppNavigator";
-import { AppProviders } from "./src/providers/AppProviders";
+import { NavegadorApp } from "./src/navegacion/NavegadorApp";
+import { ProveedoresAplicacion } from "./src/proveedores/ProveedoresAplicacion";
 
 export default function App() {
   return (
-    <AppProviders>
+    <ProveedoresAplicacion>
       <StatusBar style="light" />
-      <AppNavigator />
-    </AppProviders>
+      <NavegadorApp />
+    </ProveedoresAplicacion>
   );
 }
