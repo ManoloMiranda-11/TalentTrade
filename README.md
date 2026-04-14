@@ -210,6 +210,10 @@ Disponibilidad:
 
 El archivo [pruebas/talenttrade.http](./pruebas/talenttrade.http) contiene peticiones ordenadas para probar el flujo principal con REST Client de VS Code. Tambien se pueden copiar las peticiones a Postman o Thunder Client.
 
+Para preparar la defensa o una demostracion guiada, revisa [GUIA_PRESENTACION.md](./GUIA_PRESENTACION.md).
+
+Para explicar las tecnologias usadas, por que se han elegido y donde se encuentran en el proyecto, revisa [MEMORIA_TECNICA.md](./MEMORIA_TECNICA.md).
+
 Para revisar rapidamente que el codigo compila:
 
 ```bash
@@ -217,4 +221,3 @@ npm run typecheck
 cd talenttrade-app
 npm run typecheck
 ```
-
