@@ -8,11 +8,24 @@ import { requerirAutenticacion } from "../intermediarios/autenticacion.middlewar
 export const routerValoraciones = Router();
 
 const esquemaCrearValoracion = z.object({
-  sesionId: z.string().uuid("sesionId debe ser un UUID valido."),
-  valoradoId: z.string().uuid("valoradoId debe ser un UUID valido."),
-  puntuacion: z.number().int().min(1, "La puntuacion minima es 1.").max(5, "La puntuacion maxima es 5."),
+  sesionId: z.string().uuid("sesionId debe ser un UUID válido."),
+  valoradoId: z.string().uuid("valoradoId debe ser un UUID válido."),
+  puntuacion: z.number().int().min(1, "La puntuación mínima es 1.").max(5, "La puntuación máxima es 5."),
   comentario: z.string().trim().max(500, "El comentario es demasiado largo.").nullable().optional()
 });
+
+const RESUMEN_USUARIO_VALORACION = {
+  select: {
+    id: true,
+    name: true,
+    avatarUrl: true
+  }
+} as const;
+
+const INCLUDE_VALORACION_COMPLETA = {
+  reviewer: RESUMEN_USUARIO_VALORACION,
+  reviewed: RESUMEN_USUARIO_VALORACION
+} as const;
 
 routerValoraciones.post("/", requerirAutenticacion, async (req, res) => {
   const datosEntrada = esquemaCrearValoracion.parse(req.body);
@@ -34,7 +47,7 @@ routerValoraciones.post("/", requerirAutenticacion, async (req, res) => {
 
   if (!sesion) {
     return res.status(404).json({
-      mensaje: "La sesion no existe, todavia no se ha completado o no tienes acceso a ella."
+      mensaje: "La sesión no existe, todavía no se ha completado o no tienes acceso a ella."
     });
   }
 
@@ -42,7 +55,7 @@ routerValoraciones.post("/", requerirAutenticacion, async (req, res) => {
 
   if (!idValoradoValido) {
     return res.status(400).json({
-      mensaje: "La persona valorada no pertenece a esta sesion."
+      mensaje: "La persona valorada no pertenece a esta sesión."
     });
   }
 
@@ -54,26 +67,11 @@ routerValoraciones.post("/", requerirAutenticacion, async (req, res) => {
       rating: datosEntrada.puntuacion,
       comment: datosEntrada.comentario ?? null
     },
-    include: {
-      reviewer: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true
-        }
-      },
-      reviewed: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true
-        }
-      }
-    }
+    include: INCLUDE_VALORACION_COMPLETA
   });
 
   return res.status(201).json({
-    mensaje: "La valoracion se ha guardado correctamente.",
+    mensaje: "La valoración se ha guardado correctamente.",
     valoracion: serializarValoracion(valoracion)
   });
 });
@@ -86,22 +84,7 @@ routerValoraciones.get("/yo", requerirAutenticacion, async (req, res) => {
       where: {
         reviewedId: usuarioActualId
       },
-      include: {
-        reviewer: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true
-          }
-        },
-        reviewed: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true
-          }
-        }
-      },
+      include: INCLUDE_VALORACION_COMPLETA,
       orderBy: {
         createdAt: "desc"
       }
@@ -110,22 +93,7 @@ routerValoraciones.get("/yo", requerirAutenticacion, async (req, res) => {
       where: {
         reviewerId: usuarioActualId
       },
-      include: {
-        reviewer: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true
-          }
-        },
-        reviewed: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true
-          }
-        }
-      },
+      include: INCLUDE_VALORACION_COMPLETA,
       orderBy: {
         createdAt: "desc"
       }

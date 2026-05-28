@@ -75,7 +75,7 @@ export function PantallaChat({ route: ruta }: PropiedadesPantallaChat) {
         {consultaMensajes.isLoading ? (
           <EstadoVacio
             titulo="Cargando mensajes"
-            descripcion="Estamos abriendo la conversacion."
+            descripcion="Estamos abriendo la conversación."
           />
         ) : null}
 
@@ -88,7 +88,7 @@ export function PantallaChat({ route: ruta }: PropiedadesPantallaChat) {
 
         {!consultaMensajes.isLoading && !consultaMensajes.error && mensajes.length === 0 ? (
           <EstadoVacio
-            titulo="Todavia no hay mensajes"
+            titulo="Todavía no hay mensajes"
             descripcion="Escribe el primer mensaje para empezar a organizar el intercambio."
           />
         ) : null}

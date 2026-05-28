@@ -13,7 +13,7 @@ import { requerirAutenticacion } from "../intermediarios/autenticacion.middlewar
 export const routerHabilidades = Router();
 
 const esquemaAsignarHabilidad = z.object({
-  habilidadId: z.string().uuid("habilidadId debe ser un UUID valido."),
+  habilidadId: z.string().uuid("habilidadId debe ser un UUID válido."),
   tipo: z.enum(["OFRECER", "APRENDER"]),
   nivel: z.enum(["INICIAL", "MEDIO", "AVANZADO"])
 });
@@ -73,7 +73,7 @@ routerHabilidades.post("/yo", requerirAutenticacion, async (req, res) => {
 
 routerHabilidades.delete("/yo/:habilidadUsuarioId", requerirAutenticacion, async (req, res) => {
   const esquemaParametrosHabilidadUsuario = z.object({
-    habilidadUsuarioId: z.string().uuid("habilidadUsuarioId debe ser un UUID valido.")
+    habilidadUsuarioId: z.string().uuid("habilidadUsuarioId debe ser un UUID válido.")
   });
 
   const { habilidadUsuarioId } = esquemaParametrosHabilidadUsuario.parse(req.params);

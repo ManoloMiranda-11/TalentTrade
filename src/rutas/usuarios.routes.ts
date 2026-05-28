@@ -15,7 +15,7 @@ const esquemaActualizarPerfil = z.object({
     .max(500, "La bio no puede superar los 500 caracteres.")
     .nullable()
     .optional(),
-  urlAvatar: z.string().trim().url("La URL del avatar no es valida.").nullable().optional(),
+  urlAvatar: z.string().trim().url("La URL del avatar no es válida.").nullable().optional(),
   ciudad: z.string().trim().max(100, "La ciudad es demasiado larga.").nullable().optional(),
   latitud: z.number().min(-90).max(90).nullable().optional(),
   longitud: z.number().min(-180).max(180).nullable().optional()

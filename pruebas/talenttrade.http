@@ -20,9 +20,9 @@ POST {{urlBase}}/api/autenticacion/registro
 Content-Type: application/json
 
 {
-  "correo": "ana@talenttrade.es",
+  "correo": "ana.garcia@talenttrade.es",
   "contrasena": "123456",
-  "nombre": "Ana"
+  "nombre": "Ana Garcia"
 }
 
 ### Registro de Carlos
@@ -30,9 +30,9 @@ POST {{urlBase}}/api/autenticacion/registro
 Content-Type: application/json
 
 {
-  "correo": "carlos@talenttrade.es",
+  "correo": "carlos.martin@talenttrade.es",
   "contrasena": "123456",
-  "nombre": "Carlos"
+  "nombre": "Carlos Martin"
 }
 
 ### Inicio de sesion de Ana
@@ -40,7 +40,7 @@ POST {{urlBase}}/api/autenticacion/inicio-sesion
 Content-Type: application/json
 
 {
-  "correo": "ana@talenttrade.es",
+  "correo": "ana.garcia@talenttrade.es",
   "contrasena": "123456"
 }
 
@@ -49,7 +49,7 @@ POST {{urlBase}}/api/autenticacion/inicio-sesion
 Content-Type: application/json
 
 {
-  "correo": "carlos@talenttrade.es",
+  "correo": "carlos.martin@talenttrade.es",
   "contrasena": "123456"
 }
 
@@ -198,7 +198,7 @@ Content-Type: application/json
   "habilidadId": "{{habilidadIdOferta}}",
   "profesorId": "{{profesorId}}",
   "aprendizId": "{{aprendizId}}",
-  "fechaProgramada": "2026-04-15T18:00:00.000Z",
+  "fechaProgramada": "2026-06-15T18:00:00.000Z",
   "duracionMinutos": 60
 }
 
@@ -230,4 +230,3 @@ Content-Type: application/json
 ### Ver valoraciones de Ana
 GET {{urlBase}}/api/valoraciones/yo
 Authorization: Bearer {{tokenPrincipal}}
-

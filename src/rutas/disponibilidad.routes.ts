@@ -10,12 +10,12 @@ export const routerDisponibilidad = Router();
 
 const esquemaDisponibilidad = z.object({
   diaSemana: z.nativeEnum(DayOfWeek),
-  horaInicio: z.string().regex(/^\d{2}:\d{2}$/u, "La hora de inicio debe tener formato HH:mm."),
-  horaFin: z.string().regex(/^\d{2}:\d{2}$/u, "La hora de fin debe tener formato HH:mm.")
+  horaInicio: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/u, "La hora de inicio debe tener formato HH:mm."),
+  horaFin: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/u, "La hora de fin debe tener formato HH:mm.")
 });
 
 const esquemaParametrosDisponibilidad = z.object({
-  disponibilidadId: z.string().uuid("disponibilidadId debe ser un UUID valido.")
+  disponibilidadId: z.string().uuid("disponibilidadId debe ser un UUID válido.")
 });
 
 function convertirAHoraFecha(valor: string) {

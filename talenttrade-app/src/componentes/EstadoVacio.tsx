@@ -1,12 +1,12 @@
 import type { PropsWithChildren } from "react";
 import { Text, View } from "react-native";
 
-type EstadoVacioProps = PropsWithChildren<{
+type PropiedadesEstadoVacio = PropsWithChildren<{
   titulo: string;
   descripcion: string;
 }>;
 
-export function EstadoVacio({ titulo, descripcion, children }: EstadoVacioProps) {
+export function EstadoVacio({ titulo, descripcion, children }: PropiedadesEstadoVacio) {
   return (
     <View
       style={{

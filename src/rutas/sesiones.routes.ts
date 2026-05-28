@@ -9,12 +9,14 @@ import { requerirAutenticacion } from "../intermediarios/autenticacion.middlewar
 export const routerSesiones = Router();
 
 const esquemaCrearSesion = z.object({
-  coincidenciaId: z.string().uuid("coincidenciaId debe ser un UUID valido."),
-  habilidadId: z.string().uuid("habilidadId debe ser un UUID valido."),
-  profesorId: z.string().uuid("profesorId debe ser un UUID valido."),
-  aprendizId: z.string().uuid("aprendizId debe ser un UUID valido."),
-  fechaProgramada: z.coerce.date(),
-  duracionMinutos: z.number().int().min(15, "La duracion minima es de 15 minutos.").max(480)
+  coincidenciaId: z.string().uuid("coincidenciaId debe ser un UUID válido."),
+  habilidadId: z.string().uuid("habilidadId debe ser un UUID válido."),
+  profesorId: z.string().uuid("profesorId debe ser un UUID válido."),
+  aprendizId: z.string().uuid("aprendizId debe ser un UUID válido."),
+  fechaProgramada: z.coerce.date().refine((fecha) => fecha.getTime() > Date.now(), {
+    message: "La fecha programada debe ser futura."
+  }),
+  duracionMinutos: z.number().int().min(15, "La duración mínima es de 15 minutos.").max(480)
 });
 
 const esquemaActualizarEstadoSesion = z.object({
@@ -22,8 +24,29 @@ const esquemaActualizarEstadoSesion = z.object({
 });
 
 const esquemaParametrosSesion = z.object({
-  sesionId: z.string().uuid("sesionId debe ser un UUID valido.")
+  sesionId: z.string().uuid("sesionId debe ser un UUID válido.")
 });
+
+const RESUMEN_USUARIO_SESION = {
+  select: {
+    id: true,
+    name: true,
+    avatarUrl: true,
+    city: true
+  }
+} as const;
+
+const INCLUDE_SESION_COMPLETA = {
+  match: {
+    select: {
+      id: true,
+      status: true
+    }
+  },
+  skillTaught: true,
+  teacher: RESUMEN_USUARIO_SESION,
+  learner: RESUMEN_USUARIO_SESION
+} as const;
 
 routerSesiones.post("/", requerirAutenticacion, async (req, res) => {
   const datosEntrada = esquemaCrearSesion.parse(req.body);
@@ -39,7 +62,7 @@ routerSesiones.post("/", requerirAutenticacion, async (req, res) => {
 
   if (!coincidencia) {
     return res.status(404).json({
-      mensaje: "La coincidencia no existe o todavia no esta aceptada."
+      mensaje: "La coincidencia no existe o todavía no está aceptada."
     });
   }
 
@@ -89,35 +112,11 @@ routerSesiones.post("/", requerirAutenticacion, async (req, res) => {
       scheduledAt: datosEntrada.fechaProgramada,
       durationMinutes: datosEntrada.duracionMinutos
     },
-    include: {
-      match: {
-        select: {
-          id: true,
-          status: true
-        }
-      },
-      skillTaught: true,
-      teacher: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      learner: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      }
-    }
+    include: INCLUDE_SESION_COMPLETA
   });
 
   return res.status(201).json({
-    mensaje: "La sesion se ha creado correctamente.",
+    mensaje: "La sesión se ha creado correctamente.",
     sesion: serializarSesion(sesion)
   });
 });
@@ -129,31 +128,7 @@ routerSesiones.get("/yo", requerirAutenticacion, async (req, res) => {
     where: {
       OR: [{ teacherId: usuarioActualId }, { learnerId: usuarioActualId }]
     },
-    include: {
-      match: {
-        select: {
-          id: true,
-          status: true
-        }
-      },
-      skillTaught: true,
-      teacher: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      learner: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      }
-    },
+    include: INCLUDE_SESION_COMPLETA,
     orderBy: {
       scheduledAt: "asc"
     }
@@ -182,42 +157,18 @@ routerSesiones.patch("/:sesionId/estado", requerirAutenticacion, async (req, res
       id: sesionId,
       OR: [{ teacherId: usuarioActualId }, { learnerId: usuarioActualId }]
     },
-    include: {
-      match: {
-        select: {
-          id: true,
-          status: true
-        }
-      },
-      skillTaught: true,
-      teacher: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      learner: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      }
-    }
+    include: INCLUDE_SESION_COMPLETA
   });
 
   if (!sesion) {
     return res.status(404).json({
-      mensaje: "La sesion indicada no existe."
+      mensaje: "La sesión indicada no existe."
     });
   }
 
   if (sesion.status === SessionStatus.CANCELLED) {
     return res.status(400).json({
-      mensaje: "La sesion ya esta cancelada."
+      mensaje: "La sesión ya está cancelada."
     });
   }
 
@@ -228,35 +179,11 @@ routerSesiones.patch("/:sesionId/estado", requerirAutenticacion, async (req, res
     data: {
       status: estado
     },
-    include: {
-      match: {
-        select: {
-          id: true,
-          status: true
-        }
-      },
-      skillTaught: true,
-      teacher: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      learner: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      }
-    }
+    include: INCLUDE_SESION_COMPLETA
   });
 
   return res.status(200).json({
-    mensaje: "El estado de la sesion se ha actualizado correctamente.",
+    mensaje: "El estado de la sesión se ha actualizado correctamente.",
     sesion: serializarSesion(sesionActualizada)
   });
 });

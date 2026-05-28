@@ -1,6 +1,7 @@
+import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Platform, Pressable, Text, TextInput, View } from "react-native";
 
 import { peticionApi } from "../servicios/clienteApi";
 import { CabeceraDestacada } from "../componentes/CabeceraDestacada";
@@ -13,14 +14,12 @@ import type { DiaSemana, Disponibilidad, HabilidadUsuario, Usuario } from "../ti
 const DIAS_SEMANA: { valor: DiaSemana; etiqueta: string }[] = [
   { valor: "MON", etiqueta: "Lunes" },
   { valor: "TUE", etiqueta: "Martes" },
-  { valor: "WED", etiqueta: "Miercoles" },
+  { valor: "WED", etiqueta: "Miércoles" },
   { valor: "THU", etiqueta: "Jueves" },
   { valor: "FRI", etiqueta: "Viernes" },
-  { valor: "SAT", etiqueta: "Sabado" },
+  { valor: "SAT", etiqueta: "Sábado" },
   { valor: "SUN", etiqueta: "Domingo" }
 ];
-
-const FORMATO_HORA = /^([01]\d|2[0-3]):[0-5]\d$/u;
 
 function formatearHoraDisponibilidad(valor: string) {
   if (valor.includes("T")) {
@@ -50,24 +49,16 @@ function obtenerInicial(nombre?: string | null) {
   return nombre?.trim().charAt(0).toUpperCase() || "?";
 }
 
-function convertirHoraAMinutos(valor: string) {
-  const [horas, minutos] = valor.split(":").map(Number);
-  return horas * 60 + minutos;
+function crearFechaConHora(horas: number, minutos: number) {
+  const fecha = new Date();
+  fecha.setHours(horas, minutos, 0, 0);
+  return fecha;
 }
 
-function validarRangoDisponibilidad(horaInicio: string, horaFin: string) {
-  const inicio = horaInicio.trim();
-  const fin = horaFin.trim();
-
-  if (!FORMATO_HORA.test(inicio) || !FORMATO_HORA.test(fin)) {
-    throw new Error("Usa horas con formato HH:mm, por ejemplo 18:00.");
-  }
-
-  if (convertirHoraAMinutos(inicio) >= convertirHoraAMinutos(fin)) {
-    throw new Error("La hora de inicio debe ser anterior a la hora de fin.");
-  }
-
-  return { horaInicio: inicio, horaFin: fin };
+function formatearHoraHHmm(fecha: Date) {
+  const horas = fecha.getHours().toString().padStart(2, "0");
+  const minutos = fecha.getMinutes().toString().padStart(2, "0");
+  return `${horas}:${minutos}`;
 }
 
 export function PantallaPerfil() {
@@ -77,8 +68,30 @@ export function PantallaPerfil() {
   const [biografia, setBiografia] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [diaSemana, setDiaSemana] = useState<DiaSemana>("MON");
-  const [horaInicio, setHoraInicio] = useState("18:00");
-  const [horaFin, setHoraFin] = useState("20:00");
+  const [horaInicio, setHoraInicio] = useState<Date>(() => crearFechaConHora(18, 0));
+  const [horaFin, setHoraFin] = useState<Date>(() => crearFechaConHora(20, 0));
+  const [mostrarPickerInicio, setMostrarPickerInicio] = useState(false);
+  const [mostrarPickerFin, setMostrarPickerFin] = useState(false);
+
+  function manejarCambioHoraInicio(evento: DateTimePickerEvent, horaSeleccionada?: Date) {
+    if (Platform.OS !== "ios") {
+      setMostrarPickerInicio(false);
+    }
+
+    if (evento.type === "set" && horaSeleccionada) {
+      setHoraInicio(horaSeleccionada);
+    }
+  }
+
+  function manejarCambioHoraFin(evento: DateTimePickerEvent, horaSeleccionada?: Date) {
+    if (Platform.OS !== "ios") {
+      setMostrarPickerFin(false);
+    }
+
+    if (evento.type === "set" && horaSeleccionada) {
+      setHoraFin(horaSeleccionada);
+    }
+  }
 
   const consultaPerfil = useQuery({
     queryKey: ["perfil"],
@@ -144,14 +157,17 @@ export function PantallaPerfil() {
 
   const crearDisponibilidadMutation = useMutation({
     mutationFn: () => {
-      const rango = validarRangoDisponibilidad(horaInicio, horaFin);
+      if (horaInicio.getTime() >= horaFin.getTime()) {
+        throw new Error("La hora de inicio debe ser anterior a la hora de fin.");
+      }
 
       return peticionApi<{ disponibilidad: Disponibilidad }>("/api/disponibilidad/yo", {
         method: "POST",
         token,
         body: JSON.stringify({
           diaSemana,
-          ...rango
+          horaInicio: formatearHoraHHmm(horaInicio),
+          horaFin: formatearHoraHHmm(horaFin)
         })
       });
     },
@@ -182,7 +198,7 @@ export function PantallaPerfil() {
     <Pantalla scroll>
       <CabeceraDestacada
         titulo="Perfil"
-        subtitulo="Cuida tu presentacion para que otras personas entiendan rapido lo que ensenas y lo que quieres aprender."
+        subtitulo="Cuida tu presentación para que otras personas entiendan rápido lo que enseñas y lo que quieres aprender."
       >
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           <View
@@ -293,11 +309,11 @@ export function PantallaPerfil() {
         </View>
 
         <View style={{ gap: 6 }}>
-          <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Presentacion</Text>
+          <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Presentación</Text>
           <TextInput
             value={biografia}
             onChangeText={setBiografia}
-            placeholder="Cuentale a la comunidad que te gusta ensenar o aprender"
+            placeholder="Cuéntale a la comunidad qué te gusta enseñar o aprender"
             placeholderTextColor="#9b8f7f"
             selectionColor="#7c2d12"
             multiline
@@ -361,7 +377,7 @@ export function PantallaPerfil() {
             </Pressable>
           </View>
         ))}
-        {!habilidadesOfrecidas.length ? <Text style={{ color: "#66778a" }}>Aun no has anadido ninguna.</Text> : null}
+        {!habilidadesOfrecidas.length ? <Text style={{ color: "#66778a" }}>Aún no has añadido ninguna.</Text> : null}
       </Tarjeta>
 
       <Tarjeta>
@@ -394,14 +410,14 @@ export function PantallaPerfil() {
             </Pressable>
           </View>
         ))}
-        {!habilidadesDeseadas.length ? <Text style={{ color: "#66778a" }}>Aun no has anadido ninguna.</Text> : null}
+        {!habilidadesDeseadas.length ? <Text style={{ color: "#66778a" }}>Aún no has añadido ninguna.</Text> : null}
       </Tarjeta>
 
       <Tarjeta>
         <View style={{ gap: 4 }}>
           <Text style={{ fontSize: 18, fontWeight: "800", color: "#10253d" }}>Disponibilidad</Text>
           <Text style={{ color: "#66778a", lineHeight: 20 }}>
-            Indica cuando sueles poder quedar para que las sesiones se puedan organizar con sentido.
+            Indica cuándo sueles poder quedar para que las sesiones se puedan organizar con sentido.
           </Text>
         </View>
 
@@ -427,45 +443,57 @@ export function PantallaPerfil() {
         <View style={{ flexDirection: "row", gap: 12 }}>
           <View style={{ flex: 1, gap: 6 }}>
             <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Desde</Text>
-            <TextInput
-              value={horaInicio}
-              onChangeText={setHoraInicio}
-              placeholder="18:00"
-              keyboardType="numbers-and-punctuation"
-              placeholderTextColor="#9b8f7f"
-              selectionColor="#7c2d12"
+            <Pressable
+              onPress={() => setMostrarPickerInicio(true)}
               style={{
                 borderWidth: 1,
                 borderColor: "#d8c9ac",
                 borderRadius: 18,
                 backgroundColor: "#fff",
                 paddingHorizontal: 16,
-                paddingVertical: 14,
-                color: "#16283c"
+                paddingVertical: 16
               }}
-            />
+            >
+              <Text style={{ color: "#16283c", fontWeight: "600" }}>{formatearHoraHHmm(horaInicio)}</Text>
+            </Pressable>
           </View>
           <View style={{ flex: 1, gap: 6 }}>
             <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Hasta</Text>
-            <TextInput
-              value={horaFin}
-              onChangeText={setHoraFin}
-              placeholder="20:00"
-              keyboardType="numbers-and-punctuation"
-              placeholderTextColor="#9b8f7f"
-              selectionColor="#7c2d12"
+            <Pressable
+              onPress={() => setMostrarPickerFin(true)}
               style={{
                 borderWidth: 1,
                 borderColor: "#d8c9ac",
                 borderRadius: 18,
                 backgroundColor: "#fff",
                 paddingHorizontal: 16,
-                paddingVertical: 14,
-                color: "#16283c"
+                paddingVertical: 16
               }}
-            />
+            >
+              <Text style={{ color: "#16283c", fontWeight: "600" }}>{formatearHoraHHmm(horaFin)}</Text>
+            </Pressable>
           </View>
         </View>
+
+        {mostrarPickerInicio ? (
+          <DateTimePicker
+            value={horaInicio}
+            mode="time"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            is24Hour
+            onChange={manejarCambioHoraInicio}
+          />
+        ) : null}
+
+        {mostrarPickerFin ? (
+          <DateTimePicker
+            value={horaFin}
+            mode="time"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            is24Hour
+            onChange={manejarCambioHoraFin}
+          />
+        ) : null}
 
         <Pressable
           onPress={() => crearDisponibilidadMutation.mutate()}
@@ -478,7 +506,7 @@ export function PantallaPerfil() {
           }}
         >
           <Text style={{ color: "#fff5df", fontWeight: "700" }}>
-            {crearDisponibilidadMutation.isPending ? "Guardando..." : "Anadir disponibilidad"}
+            {crearDisponibilidadMutation.isPending ? "Guardando..." : "Añadir disponibilidad"}
           </Text>
         </Pressable>
 
@@ -526,7 +554,7 @@ export function PantallaPerfil() {
         ))}
 
         {!consultaDisponibilidad.isLoading && !consultaDisponibilidad.error && disponibilidades.length === 0 ? (
-          <Text style={{ color: "#66778a" }}>Todavia no has indicado disponibilidad.</Text>
+          <Text style={{ color: "#66778a" }}>Todavía no has indicado disponibilidad.</Text>
         ) : null}
       </Tarjeta>
 
@@ -539,7 +567,7 @@ export function PantallaPerfil() {
           alignItems: "center"
         }}
       >
-        <Text style={{ color: "#fff3f3", fontWeight: "700", fontSize: 16 }}>Cerrar sesion</Text>
+        <Text style={{ color: "#fff3f3", fontWeight: "700", fontSize: 16 }}>Cerrar sesión</Text>
       </Pressable>
 
       <View style={{ height: 20 }} />

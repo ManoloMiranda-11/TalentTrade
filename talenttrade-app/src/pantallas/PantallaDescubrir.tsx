@@ -53,7 +53,7 @@ export function PantallaDescubrir() {
     <Pantalla scroll>
       <CabeceraDestacada
         titulo="Descubrir"
-        subtitulo="Aqui aparecen perfiles con los que podria encajar un intercambio util y realista."
+        subtitulo="Aquí aparecen perfiles con los que podría encajar un intercambio útil y realista."
       >
         <View
           style={{
@@ -105,7 +105,7 @@ export function PantallaDescubrir() {
           </View>
 
           <Text style={{ color: "#66778a", lineHeight: 21 }}>
-            {sugerencia.usuario.biografia ?? "Perfil sin descripcion todavia."}
+            {sugerencia.usuario.biografia ?? "Perfil sin descripción todavía."}
           </Text>
 
           <View
@@ -123,13 +123,13 @@ export function PantallaDescubrir() {
             </Text>
             <View style={{ flexDirection: "row", gap: 10 }}>
               <View style={{ flex: 1, gap: 4 }}>
-                <Text style={{ color: "#7b5d1d", fontSize: 12, fontWeight: "800" }}>Tu ensenas</Text>
+                <Text style={{ color: "#7b5d1d", fontSize: 12, fontWeight: "800" }}>Tú enseñas</Text>
                 <Text style={{ color: "#20364d", fontWeight: "800" }}>
                   {sugerencia.compatibilidad.habilidadOfrecidaPorSolicitante.nombre}
                 </Text>
               </View>
               <View style={{ flex: 1, gap: 4 }}>
-                <Text style={{ color: "#7b5d1d", fontSize: 12, fontWeight: "800" }}>Tu aprendes</Text>
+                <Text style={{ color: "#7b5d1d", fontSize: 12, fontWeight: "800" }}>Tú aprendes</Text>
                 <Text style={{ color: "#20364d", fontWeight: "800" }}>
                   {sugerencia.compatibilidad.habilidadDeseadaPorSolicitante.nombre}
                 </Text>
@@ -167,8 +167,8 @@ export function PantallaDescubrir() {
 
       {!consultaDescubrir.isLoading && !consultaDescubrir.error && !consultaDescubrir.data?.coincidencias?.length ? (
         <EstadoVacio
-          titulo="Aun no hay coincidencias"
-          descripcion={consultaDescubrir.data?.mensaje ?? "Asegurate de tener habilidades ofrecidas y deseadas para empezar a encontrar personas compatibles."}
+          titulo="Aún no hay coincidencias"
+          descripcion={consultaDescubrir.data?.mensaje ?? "Asegúrate de tener habilidades ofrecidas y deseadas para empezar a encontrar personas compatibles."}
         >
           <Pressable
             onPress={() => navegacion.navigate("Habilidades" as never)}

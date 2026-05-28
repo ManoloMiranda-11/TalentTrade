@@ -43,7 +43,7 @@ export function PantallaHabilidades() {
       await clienteConsultas.invalidateQueries({ queryKey: ["perfil"] });
       await refrescarUsuario();
       Alert.alert("Habilidad guardada", "Tu perfil ya se ha actualizado.", [
-        { text: "Anadir otra", style: "cancel" },
+        { text: "Añadir otra", style: "cancel" },
         { text: "Ver perfil", onPress: () => navegacion.navigate("Perfil" as never) }
       ]);
     },
@@ -66,7 +66,7 @@ export function PantallaHabilidades() {
     <Pantalla scroll>
       <CabeceraDestacada
         titulo="Habilidades"
-        subtitulo="Anade lo que puedes ensenar y lo que quieres aprender para que las coincidencias tengan sentido."
+        subtitulo="Añade lo que puedes enseñar y lo que quieres aprender para que las coincidencias tengan sentido."
       >
         <View
           style={{
@@ -84,7 +84,7 @@ export function PantallaHabilidades() {
       </CabeceraDestacada>
 
       <Tarjeta>
-        <Text style={{ color: "#20364d", fontWeight: "700" }}>Que quieres anadir a tu perfil?</Text>
+        <Text style={{ color: "#20364d", fontWeight: "700" }}>¿Qué quieres añadir a tu perfil?</Text>
         <View style={{ flexDirection: "row", gap: 12 }}>
           {TIPOS.map((tipo) => (
             <Pressable
@@ -147,7 +147,7 @@ export function PantallaHabilidades() {
       {consultaHabilidades.isLoading ? (
         <EstadoVacio
           titulo="Cargando habilidades"
-          descripcion="Estamos preparando el catalogo de habilidades disponibles."
+          descripcion="Estamos preparando el catálogo de habilidades disponibles."
         />
       ) : null}
 
@@ -161,14 +161,14 @@ export function PantallaHabilidades() {
       {!consultaHabilidades.isLoading && !consultaHabilidades.error && habilidadesFiltradas.length === 0 ? (
         <EstadoVacio
           titulo="Sin resultados"
-          descripcion="Prueba con otro nombre o categoria de habilidad."
+          descripcion="Prueba con otro nombre o categoría de habilidad."
         />
       ) : null}
 
       {habilidadesFiltradas.slice(0, 20).map((habilidad) => (
         <Tarjeta key={habilidad.id}>
           <Text style={{ fontSize: 18, fontWeight: "700", color: "#10253d" }}>{habilidad.nombre}</Text>
-          <Text style={{ color: "#5f6f81" }}>{habilidad.categoria ?? "Sin categoria"}</Text>
+          <Text style={{ color: "#5f6f81" }}>{habilidad.categoria ?? "Sin categoría"}</Text>
           <Pressable
             onPress={() => guardarHabilidadMutation.mutate(habilidad.id)}
             disabled={guardarHabilidadMutation.isPending}
@@ -180,7 +180,7 @@ export function PantallaHabilidades() {
             }}
           >
             <Text style={{ color: "#fff4dc", fontWeight: "700" }}>
-              {guardarHabilidadMutation.isPending ? "Guardando..." : "Anadir al perfil"}
+              {guardarHabilidadMutation.isPending ? "Guardando..." : "Añadir al perfil"}
             </Text>
           </Pressable>
         </Tarjeta>

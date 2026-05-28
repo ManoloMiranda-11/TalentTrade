@@ -16,14 +16,14 @@ export function requerirAutenticacion(req: Request, res: Response, next: NextFun
   const cabeceraAutorizacion = req.headers.authorization;
 
   if (!cabeceraAutorizacion?.startsWith("Bearer ")) {
-    return res.status(401).json({ mensaje: "No se ha enviado un token valido." });
+    return res.status(401).json({ mensaje: "No se ha enviado un token válido." });
   }
 
   const token = cabeceraAutorizacion.split(" ")[1];
   const secreto = process.env.JWT_SECRET;
 
   if (!secreto) {
-    return res.status(500).json({ mensaje: "La autenticacion del servidor no esta configurada correctamente." });
+    return res.status(500).json({ mensaje: "La autenticación del servidor no está configurada correctamente." });
   }
 
   try {
@@ -31,6 +31,6 @@ export function requerirAutenticacion(req: Request, res: Response, next: NextFun
     req.usuario = usuario;
     next();
   } catch {
-    return res.status(401).json({ mensaje: "La sesion ha caducado o el token no es valido." });
+    return res.status(401).json({ mensaje: "La sesión ha caducado o el token no es válido." });
   }
 }

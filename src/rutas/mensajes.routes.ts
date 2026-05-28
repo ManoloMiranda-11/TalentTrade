@@ -8,16 +8,26 @@ import { requerirAutenticacion } from "../intermediarios/autenticacion.middlewar
 export const routerMensajes = Router();
 
 const esquemaParametrosConversacion = z.object({
-  conversacionId: z.string().uuid("conversacionId debe ser un UUID valido.")
+  conversacionId: z.string().uuid("conversacionId debe ser un UUID válido.")
 });
 
 const esquemaCrearMensaje = z.object({
   contenido: z
     .string()
     .trim()
-    .min(1, "El mensaje no puede estar vacio.")
+    .min(1, "El mensaje no puede estar vacío.")
     .max(1000, "El mensaje es demasiado largo.")
 });
+
+const INCLUDE_MENSAJE_CON_REMITENTE = {
+  sender: {
+    select: {
+      id: true,
+      name: true,
+      avatarUrl: true
+    }
+  }
+} as const;
 
 async function asegurarAccesoConversacion(conversacionId: string, usuarioId: string) {
   return prisma.conversation.findFirst({
@@ -42,7 +52,7 @@ routerMensajes.get("/:conversacionId", requerirAutenticacion, async (req, res) =
 
   if (!conversacion) {
     return res.status(404).json({
-      mensaje: "No tienes acceso a esta conversacion."
+      mensaje: "No tienes acceso a esta conversación."
     });
   }
 
@@ -63,19 +73,12 @@ routerMensajes.get("/:conversacionId", requerirAutenticacion, async (req, res) =
     where: {
       conversationId: conversacionId
     },
-    include: {
-      sender: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true
-        }
-      }
-    },
+    include: INCLUDE_MENSAJE_CON_REMITENTE,
     orderBy: {
       createdAt: "asc"
     }
   });
+
 
   return res.status(200).json({
     conversacionId,
@@ -92,7 +95,7 @@ routerMensajes.post("/:conversacionId", requerirAutenticacion, async (req, res) 
 
   if (!conversacion) {
     return res.status(404).json({
-      mensaje: "No tienes acceso a esta conversacion."
+      mensaje: "No tienes acceso a esta conversación."
     });
   }
 
@@ -102,15 +105,7 @@ routerMensajes.post("/:conversacionId", requerirAutenticacion, async (req, res) 
       senderId: usuarioActualId,
       content: contenido
     },
-    include: {
-      sender: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true
-        }
-      }
-    }
+    include: INCLUDE_MENSAJE_CON_REMITENTE
   });
 
   return res.status(201).json({

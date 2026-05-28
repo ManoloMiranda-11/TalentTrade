@@ -10,24 +10,24 @@ import { serializarPerfilUsuario } from "../utilidades/serializadores.js";
 export const routerAutenticacion = Router();
 
 const esquemaRegistro = z.object({
-  correo: z.string().trim().email("Introduce un correo valido."),
+  correo: z.string().trim().email("Introduce un correo válido."),
   contrasena: z
     .string()
-    .min(6, "La contrasena debe tener al menos 6 caracteres.")
-    .max(72, "La contrasena es demasiado larga."),
+    .min(6, "La contraseña debe tener al menos 6 caracteres.")
+    .max(72, "La contraseña es demasiado larga."),
   nombre: z.string().trim().min(2, "El nombre es obligatorio.").max(80, "El nombre es demasiado largo.")
 });
 
 const esquemaInicioSesion = z.object({
-  correo: z.string().trim().email("Introduce un correo valido."),
-  contrasena: z.string().min(1, "La contrasena es obligatoria.")
+  correo: z.string().trim().email("Introduce un correo válido."),
+  contrasena: z.string().min(1, "La contraseña es obligatoria.")
 });
 
 function firmarTokenAcceso(usuario: { id: string; email: string }) {
   const secreto = process.env.JWT_SECRET;
 
   if (!secreto) {
-    throw new Error("La autenticacion del servidor no esta configurada correctamente.");
+    throw new Error("La autenticación del servidor no está configurada correctamente.");
   }
 
   const opciones: SignOptions = {
@@ -95,7 +95,7 @@ routerAutenticacion.post("/inicio-sesion", async (req, res) => {
 
   if (!usuario) {
     return res.status(401).json({
-      mensaje: "El correo o la contrasena no son correctos."
+      mensaje: "El correo o la contraseña no son correctos."
     });
   }
 
@@ -103,14 +103,14 @@ routerAutenticacion.post("/inicio-sesion", async (req, res) => {
 
   if (!contrasenaValida) {
     return res.status(401).json({
-      mensaje: "El correo o la contrasena no son correctos."
+      mensaje: "El correo o la contraseña no son correctos."
     });
   }
 
   const token = firmarTokenAcceso(usuario);
 
   return res.status(200).json({
-    mensaje: "Has iniciado sesion correctamente.",
+    mensaje: "Has iniciado sesión correctamente.",
     token,
     usuario: serializarPerfilUsuario(usuario)
   });

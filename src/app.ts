@@ -2,7 +2,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import helmet from "helmet";
-import morgan from "morgan";
 
 import { manejadorErrores, manejadorRutaNoEncontrada } from "./intermediarios/errores.middleware.js";
 import { routerApi } from "./rutas/index.js";
@@ -17,7 +16,6 @@ app.use(
   })
 );
 app.use(helmet());
-app.use(morgan("dev"));
 app.use(express.json());
 
 app.get("/salud", (_req, res) => {

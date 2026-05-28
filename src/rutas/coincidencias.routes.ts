@@ -13,9 +13,9 @@ import { requerirAutenticacion } from "../intermediarios/autenticacion.middlewar
 export const routerCoincidencias = Router();
 
 const esquemaCrearCoincidencia = z.object({
-  receptorId: z.string().uuid("receptorId debe ser un UUID valido."),
-  habilidadOfrecidaId: z.string().uuid("habilidadOfrecidaId debe ser un UUID valido."),
-  habilidadDeseadaId: z.string().uuid("habilidadDeseadaId debe ser un UUID valido.")
+  receptorId: z.string().uuid("receptorId debe ser un UUID válido."),
+  habilidadOfrecidaId: z.string().uuid("habilidadOfrecidaId debe ser un UUID válido."),
+  habilidadDeseadaId: z.string().uuid("habilidadDeseadaId debe ser un UUID válido.")
 });
 
 const esquemaActualizarEstadoCoincidencia = z.object({
@@ -23,8 +23,25 @@ const esquemaActualizarEstadoCoincidencia = z.object({
 });
 
 const esquemaParametrosCoincidencia = z.object({
-  coincidenciaId: z.string().uuid("coincidenciaId debe ser un UUID valido.")
+  coincidenciaId: z.string().uuid("coincidenciaId debe ser un UUID válido.")
 });
+
+const RESUMEN_USUARIO_COINCIDENCIA = {
+  select: {
+    id: true,
+    name: true,
+    avatarUrl: true,
+    city: true
+  }
+} as const;
+
+const INCLUDE_COINCIDENCIA_COMPLETA = {
+  requester: RESUMEN_USUARIO_COINCIDENCIA,
+  receiver: RESUMEN_USUARIO_COINCIDENCIA,
+  requesterOfferSkill: true,
+  requesterWantSkill: true,
+  conversation: true
+} as const;
 
 function construirSugerenciasCompatibles(parametros: {
   usuarioActualId: string;
@@ -224,27 +241,7 @@ routerCoincidencias.get("/yo", requerirAutenticacion, async (req, res) => {
     where: {
       OR: [{ requesterId: usuarioActualId }, { receiverId: usuarioActualId }]
     },
-    include: {
-      requester: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      receiver: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      requesterOfferSkill: true,
-      requesterWantSkill: true,
-      conversation: true
-    },
+    include: INCLUDE_COINCIDENCIA_COMPLETA,
     orderBy: {
       createdAt: "desc"
     }
@@ -331,7 +328,7 @@ routerCoincidencias.post("/", requerirAutenticacion, async (req, res) => {
 
   if (!receptorOfreceHabilidadDeseada || !receptorQuiereHabilidadOfrecida) {
     return res.status(400).json({
-      mensaje: "El usuario seleccionado ya no tiene una compatibilidad valida para este intercambio."
+      mensaje: "El usuario seleccionado ya no tiene una compatibilidad válida para este intercambio."
     });
   }
 
@@ -352,27 +349,7 @@ routerCoincidencias.post("/", requerirAutenticacion, async (req, res) => {
         }
       ]
     },
-    include: {
-      requester: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      receiver: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      requesterOfferSkill: true,
-      requesterWantSkill: true,
-      conversation: true
-    }
+    include: INCLUDE_COINCIDENCIA_COMPLETA
   });
 
   if (coincidenciaExistente) {
@@ -389,27 +366,7 @@ routerCoincidencias.post("/", requerirAutenticacion, async (req, res) => {
       requesterOfferSkillId: datosEntrada.habilidadOfrecidaId,
       requesterWantSkillId: datosEntrada.habilidadDeseadaId
     },
-    include: {
-      requester: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      receiver: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      requesterOfferSkill: true,
-      requesterWantSkill: true,
-      conversation: true
-    }
+    include: INCLUDE_COINCIDENCIA_COMPLETA
   });
 
   return res.status(201).json({
@@ -426,27 +383,7 @@ routerCoincidencias.patch("/:coincidenciaId/estado", requerirAutenticacion, asyn
 
   const coincidenciaExistente = await prisma.match.findUnique({
     where: { id: coincidenciaId },
-    include: {
-      requester: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      receiver: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          city: true
-        }
-      },
-      requesterOfferSkill: true,
-      requesterWantSkill: true,
-      conversation: true
-    }
+    include: INCLUDE_COINCIDENCIA_COMPLETA
   });
 
   if (!coincidenciaExistente) {
@@ -484,27 +421,7 @@ routerCoincidencias.patch("/:coincidenciaId/estado", requerirAutenticacion, asyn
     const coincidencia = await transaccion.match.update({
       where: { id: coincidenciaId },
       data: { status: estado },
-      include: {
-        requester: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-            city: true
-          }
-        },
-        receiver: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-            city: true
-          }
-        },
-        requesterOfferSkill: true,
-        requesterWantSkill: true,
-        conversation: true
-      }
+      include: INCLUDE_COINCIDENCIA_COMPLETA
     });
 
     if (estado === MatchStatus.ACCEPTED && !coincidencia.conversation) {
@@ -516,27 +433,7 @@ routerCoincidencias.patch("/:coincidenciaId/estado", requerirAutenticacion, asyn
 
       return transaccion.match.findUniqueOrThrow({
         where: { id: coincidencia.id },
-        include: {
-          requester: {
-            select: {
-              id: true,
-              name: true,
-              avatarUrl: true,
-              city: true
-            }
-          },
-          receiver: {
-            select: {
-              id: true,
-              name: true,
-              avatarUrl: true,
-              city: true
-            }
-          },
-          requesterOfferSkill: true,
-          requesterWantSkill: true,
-          conversation: true
-        }
+        include: INCLUDE_COINCIDENCIA_COMPLETA
       });
     }
 

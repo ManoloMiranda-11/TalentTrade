@@ -1,5 +1,4 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useState } from "react";
 import { Alert, Pressable, Text } from "react-native";
 import { z } from "zod";
 
@@ -11,34 +10,46 @@ import { useAutenticacion } from "../proveedores/ProveedorAutenticacion";
 
 const esquema = z.object({
   nombre: z.string().min(2, "Introduce tu nombre."),
-  correo: z.string().email("Introduce un correo valido."),
-  contrasena: z.string().min(6, "La contrasena debe tener al menos 6 caracteres.")
+  correo: z.string().email("Introduce un correo válido."),
+  contrasena: z.string().min(6, "La contraseña debe tener al menos 6 caracteres.")
 });
 
-type DatosFormulario = z.infer<typeof esquema>;
+type ErroresFormulario = Partial<Record<"nombre" | "correo" | "contrasena", string>>;
 
 export function PantallaCrearCuenta() {
   const { crearCuenta } = useAutenticacion();
-  const {
-    control,
-    handleSubmit,
-    formState: { errors, isSubmitting }
-  } = useForm<DatosFormulario>({
-    resolver: zodResolver(esquema),
-    defaultValues: {
-      nombre: "",
-      correo: "",
-      contrasena: ""
-    }
-  });
+  const [nombre, setNombre] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [contrasena, setContrasena] = useState("");
+  const [errores, setErrores] = useState<ErroresFormulario>({});
+  const [enviando, setEnviando] = useState(false);
 
-  const alEnviar = handleSubmit(async (datosFormulario) => {
+  async function alEnviar() {
+    const resultado = esquema.safeParse({ nombre, correo, contrasena });
+
+    if (!resultado.success) {
+      const erroresPorCampo: ErroresFormulario = {};
+      for (const problema of resultado.error.issues) {
+        const campo = problema.path[0];
+        if (campo === "nombre" || campo === "correo" || campo === "contrasena") {
+          erroresPorCampo[campo] = problema.message;
+        }
+      }
+      setErrores(erroresPorCampo);
+      return;
+    }
+
+    setErrores({});
+    setEnviando(true);
+
     try {
-      await crearCuenta(datosFormulario.nombre, datosFormulario.correo, datosFormulario.contrasena);
+      await crearCuenta(resultado.data.nombre, resultado.data.correo, resultado.data.contrasena);
     } catch (errorCapturado) {
       Alert.alert("No se pudo crear la cuenta", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+    } finally {
+      setEnviando(false);
     }
-  });
+  }
 
   return (
     <Pantalla scroll>
@@ -50,68 +61,50 @@ export function PantallaCrearCuenta() {
       <Tarjeta>
         <Text style={{ fontSize: 24, fontWeight: "700", color: "#13293f" }}>Crear cuenta</Text>
 
-        <Controller
-          control={control}
-          name="nombre"
-          render={({ field: { value: valor, onChange: alCambiar } }) => (
-            <CampoFormulario
-              etiqueta="Nombre"
-              valor={valor}
-              alCambiarTexto={alCambiar}
-              placeholder="Como quieres que te vean"
-              mensajeError={errors.nombre?.message}
-            />
-          )}
+        <CampoFormulario
+          etiqueta="Nombre"
+          valor={nombre}
+          alCambiarTexto={setNombre}
+          placeholder="Cómo quieres que te vean"
+          mensajeError={errores.nombre}
         />
 
-        <Controller
-          control={control}
-          name="correo"
-          render={({ field: { value: valor, onChange: alCambiar } }) => (
-            <CampoFormulario
-              etiqueta="Correo"
-              valor={valor}
-              alCambiarTexto={alCambiar}
-              placeholder="tu_correo@dominio.es"
-              mensajeError={errors.correo?.message}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              textContentType="emailAddress"
-              autoComplete="email"
-            />
-          )}
+        <CampoFormulario
+          etiqueta="Correo"
+          valor={correo}
+          alCambiarTexto={setCorreo}
+          placeholder="tu_correo@dominio.es"
+          mensajeError={errores.correo}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          textContentType="emailAddress"
+          autoComplete="email"
         />
 
-        <Controller
-          control={control}
-          name="contrasena"
-          render={({ field: { value: valor, onChange: alCambiar } }) => (
-            <CampoFormulario
-              etiqueta="Contrasena"
-              valor={valor}
-              alCambiarTexto={alCambiar}
-              placeholder="Elige una contrasena segura"
-              secureTextEntry
-              mensajeError={errors.contrasena?.message}
-              autoCapitalize="none"
-              textContentType="newPassword"
-              autoComplete="password-new"
-            />
-          )}
+        <CampoFormulario
+          etiqueta="Contraseña"
+          valor={contrasena}
+          alCambiarTexto={setContrasena}
+          placeholder="Elige una contraseña segura"
+          secureTextEntry
+          mensajeError={errores.contrasena}
+          autoCapitalize="none"
+          textContentType="newPassword"
+          autoComplete="password-new"
         />
 
         <Pressable
           onPress={alEnviar}
-          disabled={isSubmitting}
+          disabled={enviando}
           style={{
-            backgroundColor: isSubmitting ? "#b59b8c" : "#7c2d12",
+            backgroundColor: enviando ? "#b59b8c" : "#7c2d12",
             paddingVertical: 16,
             borderRadius: 18,
             alignItems: "center"
           }}
         >
           <Text style={{ color: "#fff6e8", fontWeight: "700", fontSize: 16 }}>
-            {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
+            {enviando ? "Creando cuenta..." : "Crear cuenta"}
           </Text>
         </Pressable>
       </Tarjeta>

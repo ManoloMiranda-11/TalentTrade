@@ -1,7 +1,8 @@
+import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useNavigation, type NavigationProp } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Platform, Pressable, Text, TextInput, View } from "react-native";
 
 import { peticionApi } from "../servicios/clienteApi";
 import { CabeceraDestacada } from "../componentes/CabeceraDestacada";
@@ -15,21 +16,21 @@ import type { Coincidencia } from "../tipos/tiposApi";
 function obtenerFechaManana() {
   const fecha = new Date();
   fecha.setDate(fecha.getDate() + 1);
-  return fecha.toISOString().slice(0, 10);
+  fecha.setHours(18, 0, 0, 0);
+  return fecha;
 }
 
-function crearFechaProgramada(fechaSesion: string, horaSesion: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/u.test(fechaSesion) || !/^\d{2}:\d{2}$/u.test(horaSesion)) {
-    throw new Error("Usa fecha YYYY-MM-DD y hora HH:mm.");
-  }
+function formatearFecha(fecha: Date) {
+  return fecha.toLocaleDateString("es-ES", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
 
-  const fechaProgramada = new Date(`${fechaSesion}T${horaSesion}:00`);
-
-  if (Number.isNaN(fechaProgramada.getTime())) {
-    throw new Error("La fecha o la hora no tienen un formato valido.");
-  }
-
-  return fechaProgramada.toISOString();
+function formatearHora(fecha: Date) {
+  return fecha.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 }
 
 function obtenerEtiquetaEstadoCoincidencia(estado: Coincidencia["estado"]) {
@@ -64,9 +65,34 @@ export function PantallaCoincidencias() {
   const navegacion = useNavigation<NavigationProp<ParametrosNavegacionPrincipal>>();
   const { token, usuario } = useAutenticacion();
   const clienteConsultas = useQueryClient();
-  const [fechaSesion, setFechaSesion] = useState(() => obtenerFechaManana());
-  const [horaSesion, setHoraSesion] = useState("18:00");
+  const [fechaProgramada, setFechaProgramada] = useState<Date>(() => obtenerFechaManana());
+  const [mostrarPickerFecha, setMostrarPickerFecha] = useState(false);
+  const [mostrarPickerHora, setMostrarPickerHora] = useState(false);
   const [duracionMinutos, setDuracionMinutos] = useState("60");
+
+  function manejarCambioFecha(evento: DateTimePickerEvent, fechaSeleccionada?: Date) {
+    if (Platform.OS !== "ios") {
+      setMostrarPickerFecha(false);
+    }
+
+    if (evento.type === "set" && fechaSeleccionada) {
+      const fechaCombinada = new Date(fechaProgramada);
+      fechaCombinada.setFullYear(fechaSeleccionada.getFullYear(), fechaSeleccionada.getMonth(), fechaSeleccionada.getDate());
+      setFechaProgramada(fechaCombinada);
+    }
+  }
+
+  function manejarCambioHora(evento: DateTimePickerEvent, horaSeleccionada?: Date) {
+    if (Platform.OS !== "ios") {
+      setMostrarPickerHora(false);
+    }
+
+    if (evento.type === "set" && horaSeleccionada) {
+      const fechaCombinada = new Date(fechaProgramada);
+      fechaCombinada.setHours(horaSeleccionada.getHours(), horaSeleccionada.getMinutes(), 0, 0);
+      setFechaProgramada(fechaCombinada);
+    }
+  }
 
   const consultaCoincidencias = useQuery({
     queryKey: ["coincidencias"],
@@ -97,7 +123,11 @@ export function PantallaCoincidencias() {
       const duracion = Number(duracionMinutos);
 
       if (!Number.isInteger(duracion) || duracion < 15 || duracion > 480) {
-        throw new Error("La duracion debe estar entre 15 y 480 minutos.");
+        throw new Error("La duración debe estar entre 15 y 480 minutos.");
+      }
+
+      if (fechaProgramada.getTime() <= Date.now()) {
+        throw new Error("La fecha programada debe ser futura.");
       }
 
       return peticionApi("/api/sesiones", {
@@ -105,20 +135,20 @@ export function PantallaCoincidencias() {
         token,
         body: JSON.stringify({
           ...datosSesion,
-          fechaProgramada: crearFechaProgramada(fechaSesion, horaSesion),
+          fechaProgramada: fechaProgramada.toISOString(),
           duracionMinutos: duracion
         })
       });
     },
     onSuccess: async () => {
       await clienteConsultas.invalidateQueries({ queryKey: ["sesiones"] });
-      Alert.alert("Sesion creada", "La sesion ya aparece en la pantalla de sesiones.", [
-        { text: "Seguir aqui", style: "cancel" },
+      Alert.alert("Sesión creada", "La sesión ya aparece en la pantalla de sesiones.", [
+        { text: "Seguir aquí", style: "cancel" },
         { text: "Ver sesiones", onPress: () => navegacion.navigate("Sesiones" as never) }
       ]);
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo crear la sesion", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      Alert.alert("No se pudo crear la sesión", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
     }
   });
 
@@ -154,8 +184,8 @@ export function PantallaCoincidencias() {
 
       {!consultaCoincidencias.isLoading && !consultaCoincidencias.error && !consultaCoincidencias.data?.coincidencias?.length ? (
         <EstadoVacio
-          titulo="Todavia no tienes coincidencias"
-          descripcion="Cuando envies o aceptes un intercambio, aparecera aqui para que puedas gestionarlo."
+          titulo="Todavía no tienes coincidencias"
+          descripcion="Cuando envíes o aceptes un intercambio, aparecerá aquí para que puedas gestionarlo."
         >
           <Pressable
             onPress={() => navegacion.navigate("Descubrir" as never)}
@@ -194,7 +224,7 @@ export function PantallaCoincidencias() {
         const opcionesSesion = usuario
           ? [
               {
-                etiqueta: `Yo enseno ${esSolicitante ? coincidencia.habilidadOfrecidaPorSolicitante.nombre : coincidencia.habilidadSolicitadaPorSolicitante.nombre}`,
+                etiqueta: `Yo enseño ${esSolicitante ? coincidencia.habilidadOfrecidaPorSolicitante.nombre : coincidencia.habilidadSolicitadaPorSolicitante.nombre}`,
                 datos: {
                   coincidenciaId: coincidencia.id,
                   habilidadId: esSolicitante
@@ -285,55 +315,69 @@ export function PantallaCoincidencias() {
                 }}
               >
                 <View style={{ gap: 4 }}>
-                  <Text style={{ color: "#10253d", fontWeight: "800", fontSize: 16 }}>Programar sesion</Text>
+                  <Text style={{ color: "#10253d", fontWeight: "800", fontSize: 16 }}>Programar sesión</Text>
                   <Text style={{ color: "#66778a", lineHeight: 20 }}>
-                    Elige fecha, hora y quien ensena para crear una sesion con esta coincidencia.
+                    Elige fecha, hora y quién enseña para crear una sesión con esta coincidencia.
                   </Text>
                 </View>
 
                 <View style={{ flexDirection: "row", gap: 10 }}>
                   <View style={{ flex: 1, gap: 6 }}>
                     <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Fecha</Text>
-                    <TextInput
-                      value={fechaSesion}
-                      onChangeText={setFechaSesion}
-                      placeholder="AAAA-MM-DD"
-                      keyboardType="numbers-and-punctuation"
-                      placeholderTextColor="#9b8f7f"
-                      selectionColor="#7c2d12"
+                    <Pressable
+                      onPress={() => setMostrarPickerFecha(true)}
                       style={{
                         borderWidth: 1,
                         borderColor: "#d8c9ac",
                         borderRadius: 16,
                         backgroundColor: "#fff",
                         paddingHorizontal: 14,
-                        paddingVertical: 12
+                        paddingVertical: 14
                       }}
-                    />
+                    >
+                      <Text style={{ color: "#16283c", fontWeight: "600" }}>{formatearFecha(fechaProgramada)}</Text>
+                    </Pressable>
                   </View>
-                  <View style={{ width: 92, gap: 6 }}>
+                  <View style={{ width: 110, gap: 6 }}>
                     <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Hora</Text>
-                    <TextInput
-                      value={horaSesion}
-                      onChangeText={setHoraSesion}
-                      placeholder="18:00"
-                      keyboardType="numbers-and-punctuation"
-                      placeholderTextColor="#9b8f7f"
-                      selectionColor="#7c2d12"
+                    <Pressable
+                      onPress={() => setMostrarPickerHora(true)}
                       style={{
                         borderWidth: 1,
                         borderColor: "#d8c9ac",
                         borderRadius: 16,
                         backgroundColor: "#fff",
                         paddingHorizontal: 14,
-                        paddingVertical: 12
+                        paddingVertical: 14
                       }}
-                    />
+                    >
+                      <Text style={{ color: "#16283c", fontWeight: "600" }}>{formatearHora(fechaProgramada)}</Text>
+                    </Pressable>
                   </View>
                 </View>
 
+                {mostrarPickerFecha ? (
+                  <DateTimePicker
+                    value={fechaProgramada}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    minimumDate={new Date()}
+                    onChange={manejarCambioFecha}
+                  />
+                ) : null}
+
+                {mostrarPickerHora ? (
+                  <DateTimePicker
+                    value={fechaProgramada}
+                    mode="time"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    is24Hour
+                    onChange={manejarCambioHora}
+                  />
+                ) : null}
+
                 <View style={{ gap: 6 }}>
-                  <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Duracion en minutos</Text>
+                  <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Duración en minutos</Text>
                   <TextInput
                     value={duracionMinutos}
                     onChangeText={setDuracionMinutos}

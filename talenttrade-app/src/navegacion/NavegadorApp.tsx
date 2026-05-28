@@ -120,7 +120,7 @@ export function NavegadorApp() {
         {token ? (
           <>
             <Pila.Screen name="TalentTrade" component={NavegacionPorPestanas} options={{ headerShown: false }} />
-            <Pila.Screen name="Conversacion" component={PantallaChat} />
+            <Pila.Screen name="Conversacion" component={PantallaChat} options={{ title: "Conversación" }} />
           </>
         ) : (
           <>

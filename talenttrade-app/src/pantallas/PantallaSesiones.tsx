@@ -69,7 +69,7 @@ export function PantallaSesiones() {
       await clienteConsultas.invalidateQueries({ queryKey: ["valoraciones"] });
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo actualizar la sesion", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      Alert.alert("No se pudo actualizar la sesión", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
     }
   });
 
@@ -101,10 +101,10 @@ export function PantallaSesiones() {
         ...comentariosActuales,
         [variables.sesionId]: ""
       }));
-      Alert.alert("Valoracion enviada", "Gracias por valorar la experiencia.");
+      Alert.alert("Valoración enviada", "Gracias por valorar la experiencia.");
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo crear la valoracion", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      Alert.alert("No se pudo crear la valoración", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
     }
   });
 
@@ -114,7 +114,7 @@ export function PantallaSesiones() {
     <Pantalla scroll>
       <CabeceraDestacada
         titulo="Sesiones"
-        subtitulo="Aqui puedes seguir cada intercambio acordado, cerrarlo cuando termine y valorar la experiencia."
+        subtitulo="Aquí puedes seguir cada intercambio acordado, cerrarlo cuando termine y valorar la experiencia."
       />
 
       {consultaSesiones.isLoading ? (
@@ -133,8 +133,8 @@ export function PantallaSesiones() {
 
       {!consultaSesiones.isLoading && !consultaSesiones.error && !(consultaSesiones.data?.sesiones?.length ?? 0) ? (
         <EstadoVacio
-          titulo="Aun no tienes sesiones"
-          descripcion="Cuando una coincidencia avance, podras organizar aqui las sesiones de aprendizaje."
+          titulo="Aún no tienes sesiones"
+          descripcion="Cuando una coincidencia avance, podrás organizar aquí las sesiones de aprendizaje."
         >
           <Pressable
             onPress={() => navegacion.navigate("Coincidencias" as never)}
@@ -185,7 +185,7 @@ export function PantallaSesiones() {
             <Text style={{ color: "#30445a" }}>
               Fecha: {new Date(sesion.fechaProgramada).toLocaleString("es-ES")}
             </Text>
-            <Text style={{ color: "#30445a" }}>Duracion: {sesion.duracionMinutos} minutos</Text>
+            <Text style={{ color: "#30445a" }}>Duración: {sesion.duracionMinutos} minutos</Text>
 
             {sesion.estado === "PROGRAMADA" ? (
               <View style={{ flexDirection: "row", gap: 12 }}>
@@ -305,14 +305,14 @@ export function PantallaSesiones() {
                   }}
                 >
                   <Text style={{ color: "#fff2e8", fontWeight: "700" }}>
-                    {crearValoracionMutation.isPending ? "Enviando..." : "Enviar valoracion"}
+                    {crearValoracionMutation.isPending ? "Enviando..." : "Enviar valoración"}
                   </Text>
                 </Pressable>
               </View>
             ) : null}
 
             {sesion.estado === "COMPLETADA" && sesionesYaValoradas.has(sesion.id) ? (
-              <Text style={{ color: "#66778a" }}>Ya has valorado esta sesion.</Text>
+              <Text style={{ color: "#66778a" }}>Ya has valorado esta sesión.</Text>
             ) : null}
           </Tarjeta>
         );
@@ -344,7 +344,7 @@ export function PantallaSesiones() {
           </View>
         ))}
         {!consultaValoraciones.isLoading && !consultaValoraciones.error && !consultaValoraciones.data?.valoracionesRecibidas?.length ? (
-          <Text style={{ color: "#66778a" }}>Todavia no has recibido valoraciones.</Text>
+          <Text style={{ color: "#66778a" }}>Todavía no has recibido valoraciones.</Text>
         ) : null}
       </Tarjeta>
 
@@ -376,7 +376,7 @@ export function PantallaSesiones() {
           </View>
         ))}
         {!consultaValoraciones.isLoading && !consultaValoraciones.error && !consultaValoraciones.data?.valoracionesEscritas?.length ? (
-          <Text style={{ color: "#66778a" }}>Todavia no has enviado valoraciones.</Text>
+          <Text style={{ color: "#66778a" }}>Todavía no has enviado valoraciones.</Text>
         ) : null}
       </Tarjeta>
     </Pantalla>
