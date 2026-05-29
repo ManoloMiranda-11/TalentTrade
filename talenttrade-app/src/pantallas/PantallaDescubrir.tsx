@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { peticionApi } from "../servicios/clienteApi";
 import { CabeceraDestacada } from "../componentes/CabeceraDestacada";
@@ -8,6 +8,7 @@ import { Tarjeta } from "../componentes/Tarjeta";
 import { EstadoVacio } from "../componentes/EstadoVacio";
 import { Pantalla } from "../componentes/Pantalla";
 import { useAutenticacion } from "../proveedores/ProveedorAutenticacion";
+import { useAviso } from "../proveedores/ProveedorAvisos";
 import type { SugerenciaCoincidencia } from "../tipos/tiposApi";
 
 function obtenerInicial(nombre: string) {
@@ -17,6 +18,7 @@ function obtenerInicial(nombre: string) {
 export function PantallaDescubrir() {
   const navegacion = useNavigation();
   const { token } = useAutenticacion();
+  const aviso = useAviso();
   const clienteConsultas = useQueryClient();
 
   const consultaDescubrir = useQuery({
@@ -37,13 +39,16 @@ export function PantallaDescubrir() {
     onSuccess: async () => {
       await clienteConsultas.invalidateQueries({ queryKey: ["descubrir"] });
       await clienteConsultas.invalidateQueries({ queryKey: ["coincidencias"] });
-      Alert.alert("Coincidencia enviada", "La solicitud de intercambio se ha creado correctamente.", [
-        { text: "Seguir mirando", style: "cancel" },
-        { text: "Ver coincidencias", onPress: () => navegacion.navigate("Coincidencias" as never) }
-      ]);
+      aviso.exito("Coincidencia enviada", "La solicitud de intercambio se ha creado correctamente.", {
+        etiqueta: "Ver coincidencias",
+        alPulsar: () => navegacion.navigate("Coincidencias" as never)
+      });
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo crear la coincidencia", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo crear la coincidencia",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     }
   });
 

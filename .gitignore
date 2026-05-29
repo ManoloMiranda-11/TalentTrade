@@ -23,11 +23,14 @@ prisma/dev.db
 
 # Documentos de trabajo del autor (no parte del repo)
 Memoria_TalentTrade.docx
+Presentacion_TalentTrade.pptx
 *.pdf
 memoria_referencia.txt
+slides_qa/
 
 # Scripts auxiliares del autor (no parte del proyecto)
 generar_memoria.js
+generar_presentacion.js
 generate_word.py
 
 # Logs

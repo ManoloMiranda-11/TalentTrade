@@ -1,16 +1,17 @@
-import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useNavigation, type NavigationProp } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Alert, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 import { peticionApi } from "../servicios/clienteApi";
 import { CabeceraDestacada } from "../componentes/CabeceraDestacada";
+import { SelectorTemporal } from "../componentes/SelectorTemporal";
 import { Tarjeta } from "../componentes/Tarjeta";
 import { EstadoVacio } from "../componentes/EstadoVacio";
 import { Pantalla } from "../componentes/Pantalla";
 import type { ParametrosNavegacionPrincipal } from "../navegacion/tiposNavegacion";
 import { useAutenticacion } from "../proveedores/ProveedorAutenticacion";
+import { useAviso } from "../proveedores/ProveedorAvisos";
 import type { Coincidencia } from "../tipos/tiposApi";
 
 function obtenerFechaManana() {
@@ -18,19 +19,6 @@ function obtenerFechaManana() {
   fecha.setDate(fecha.getDate() + 1);
   fecha.setHours(18, 0, 0, 0);
   return fecha;
-}
-
-function formatearFecha(fecha: Date) {
-  return fecha.toLocaleDateString("es-ES", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  });
-}
-
-function formatearHora(fecha: Date) {
-  return fecha.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 }
 
 function obtenerEtiquetaEstadoCoincidencia(estado: Coincidencia["estado"]) {
@@ -64,35 +52,10 @@ function obtenerColorEstadoCoincidencia(estado: Coincidencia["estado"]) {
 export function PantallaCoincidencias() {
   const navegacion = useNavigation<NavigationProp<ParametrosNavegacionPrincipal>>();
   const { token, usuario } = useAutenticacion();
+  const aviso = useAviso();
   const clienteConsultas = useQueryClient();
   const [fechaProgramada, setFechaProgramada] = useState<Date>(() => obtenerFechaManana());
-  const [mostrarPickerFecha, setMostrarPickerFecha] = useState(false);
-  const [mostrarPickerHora, setMostrarPickerHora] = useState(false);
   const [duracionMinutos, setDuracionMinutos] = useState("60");
-
-  function manejarCambioFecha(evento: DateTimePickerEvent, fechaSeleccionada?: Date) {
-    if (Platform.OS !== "ios") {
-      setMostrarPickerFecha(false);
-    }
-
-    if (evento.type === "set" && fechaSeleccionada) {
-      const fechaCombinada = new Date(fechaProgramada);
-      fechaCombinada.setFullYear(fechaSeleccionada.getFullYear(), fechaSeleccionada.getMonth(), fechaSeleccionada.getDate());
-      setFechaProgramada(fechaCombinada);
-    }
-  }
-
-  function manejarCambioHora(evento: DateTimePickerEvent, horaSeleccionada?: Date) {
-    if (Platform.OS !== "ios") {
-      setMostrarPickerHora(false);
-    }
-
-    if (evento.type === "set" && horaSeleccionada) {
-      const fechaCombinada = new Date(fechaProgramada);
-      fechaCombinada.setHours(horaSeleccionada.getHours(), horaSeleccionada.getMinutes(), 0, 0);
-      setFechaProgramada(fechaCombinada);
-    }
-  }
 
   const consultaCoincidencias = useQuery({
     queryKey: ["coincidencias"],
@@ -109,12 +72,20 @@ export function PantallaCoincidencias() {
         token,
         body: JSON.stringify({ estado })
       }),
-    onSuccess: async () => {
+    onSuccess: async (_resultado, variables) => {
       await clienteConsultas.invalidateQueries({ queryKey: ["coincidencias"] });
       await clienteConsultas.invalidateQueries({ queryKey: ["descubrir"] });
+      if (variables.estado === "ACEPTADA") {
+        aviso.exito("Coincidencia aceptada", "Ya podéis hablar por el chat para concretar la sesión.");
+      } else {
+        aviso.info("Coincidencia rechazada", "Hemos avisado al otro usuario.");
+      }
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo actualizar", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo actualizar",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     }
   });
 
@@ -142,13 +113,16 @@ export function PantallaCoincidencias() {
     },
     onSuccess: async () => {
       await clienteConsultas.invalidateQueries({ queryKey: ["sesiones"] });
-      Alert.alert("Sesión creada", "La sesión ya aparece en la pantalla de sesiones.", [
-        { text: "Seguir aquí", style: "cancel" },
-        { text: "Ver sesiones", onPress: () => navegacion.navigate("Sesiones" as never) }
-      ]);
+      aviso.exito("Sesión creada", "La sesión ya aparece en la pantalla de sesiones.", {
+        etiqueta: "Ver sesiones",
+        alPulsar: () => navegacion.navigate("Sesiones" as never)
+      });
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo crear la sesión", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo crear la sesión",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     }
   });
 
@@ -324,57 +298,18 @@ export function PantallaCoincidencias() {
                 <View style={{ flexDirection: "row", gap: 10 }}>
                   <View style={{ flex: 1, gap: 6 }}>
                     <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Fecha</Text>
-                    <Pressable
-                      onPress={() => setMostrarPickerFecha(true)}
-                      style={{
-                        borderWidth: 1,
-                        borderColor: "#d8c9ac",
-                        borderRadius: 16,
-                        backgroundColor: "#fff",
-                        paddingHorizontal: 14,
-                        paddingVertical: 14
-                      }}
-                    >
-                      <Text style={{ color: "#16283c", fontWeight: "600" }}>{formatearFecha(fechaProgramada)}</Text>
-                    </Pressable>
+                    <SelectorTemporal
+                      modo="date"
+                      valor={fechaProgramada}
+                      alCambiar={setFechaProgramada}
+                      fechaMinima={new Date()}
+                    />
                   </View>
-                  <View style={{ width: 110, gap: 6 }}>
+                  <View style={{ width: 130, gap: 6 }}>
                     <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Hora</Text>
-                    <Pressable
-                      onPress={() => setMostrarPickerHora(true)}
-                      style={{
-                        borderWidth: 1,
-                        borderColor: "#d8c9ac",
-                        borderRadius: 16,
-                        backgroundColor: "#fff",
-                        paddingHorizontal: 14,
-                        paddingVertical: 14
-                      }}
-                    >
-                      <Text style={{ color: "#16283c", fontWeight: "600" }}>{formatearHora(fechaProgramada)}</Text>
-                    </Pressable>
+                    <SelectorTemporal modo="time" valor={fechaProgramada} alCambiar={setFechaProgramada} />
                   </View>
                 </View>
-
-                {mostrarPickerFecha ? (
-                  <DateTimePicker
-                    value={fechaProgramada}
-                    mode="date"
-                    display={Platform.OS === "ios" ? "spinner" : "default"}
-                    minimumDate={new Date()}
-                    onChange={manejarCambioFecha}
-                  />
-                ) : null}
-
-                {mostrarPickerHora ? (
-                  <DateTimePicker
-                    value={fechaProgramada}
-                    mode="time"
-                    display={Platform.OS === "ios" ? "spinner" : "default"}
-                    is24Hour
-                    onChange={manejarCambioHora}
-                  />
-                ) : null}
 
                 <View style={{ gap: 6 }}>
                   <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Duración en minutos</Text>

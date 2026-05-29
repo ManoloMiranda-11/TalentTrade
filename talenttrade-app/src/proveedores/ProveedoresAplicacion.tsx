@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type PropsWithChildren } from "react";
 
 import { ProveedorAutenticacion } from "./ProveedorAutenticacion";
+import { ProveedorAvisos } from "./ProveedorAvisos";
 
 export function ProveedoresAplicacion({ children }: PropsWithChildren) {
   const [clienteConsultas] = useState(
@@ -17,7 +18,9 @@ export function ProveedoresAplicacion({ children }: PropsWithChildren) {
 
   return (
     <QueryClientProvider client={clienteConsultas}>
-      <ProveedorAutenticacion>{children}</ProveedorAutenticacion>
+      <ProveedorAutenticacion>
+        <ProveedorAvisos>{children}</ProveedorAvisos>
+      </ProveedorAutenticacion>
     </QueryClientProvider>
   );
 }

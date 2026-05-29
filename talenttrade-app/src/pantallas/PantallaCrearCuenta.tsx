@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Pressable, Text } from "react-native";
+import { Pressable, Text } from "react-native";
 import { z } from "zod";
 
 import { CabeceraDestacada } from "../componentes/CabeceraDestacada";
@@ -7,6 +7,7 @@ import { Tarjeta } from "../componentes/Tarjeta";
 import { CampoFormulario } from "../componentes/CampoFormulario";
 import { Pantalla } from "../componentes/Pantalla";
 import { useAutenticacion } from "../proveedores/ProveedorAutenticacion";
+import { useAviso } from "../proveedores/ProveedorAvisos";
 
 const esquema = z.object({
   nombre: z.string().min(2, "Introduce tu nombre."),
@@ -18,6 +19,7 @@ type ErroresFormulario = Partial<Record<"nombre" | "correo" | "contrasena", stri
 
 export function PantallaCrearCuenta() {
   const { crearCuenta } = useAutenticacion();
+  const aviso = useAviso();
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
@@ -44,8 +46,12 @@ export function PantallaCrearCuenta() {
 
     try {
       await crearCuenta(resultado.data.nombre, resultado.data.correo, resultado.data.contrasena);
+      aviso.exito("Cuenta creada", "Te hemos identificado y ya puedes empezar a usar TalentTrade.");
     } catch (errorCapturado) {
-      Alert.alert("No se pudo crear la cuenta", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo crear la cuenta",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     } finally {
       setEnviando(false);
     }

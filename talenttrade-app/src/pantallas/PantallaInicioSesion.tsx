@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
-import { Alert, Pressable, Text } from "react-native";
+import { Pressable, Text } from "react-native";
 import { z } from "zod";
 
 import { CabeceraDestacada } from "../componentes/CabeceraDestacada";
@@ -8,6 +8,7 @@ import { Tarjeta } from "../componentes/Tarjeta";
 import { CampoFormulario } from "../componentes/CampoFormulario";
 import { Pantalla } from "../componentes/Pantalla";
 import { useAutenticacion } from "../proveedores/ProveedorAutenticacion";
+import { useAviso } from "../proveedores/ProveedorAvisos";
 
 const esquema = z.object({
   correo: z.string().email("Introduce un correo válido."),
@@ -19,6 +20,7 @@ type ErroresFormulario = Partial<Record<"correo" | "contrasena", string>>;
 export function PantallaInicioSesion() {
   const navegacion = useNavigation();
   const { iniciarSesion } = useAutenticacion();
+  const aviso = useAviso();
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [errores, setErrores] = useState<ErroresFormulario>({});
@@ -44,8 +46,12 @@ export function PantallaInicioSesion() {
 
     try {
       await iniciarSesion(resultado.data.correo, resultado.data.contrasena);
+      aviso.exito("Sesión iniciada", "Bienvenido de vuelta a TalentTrade.");
     } catch (errorCapturado) {
-      Alert.alert("No se pudo iniciar sesión", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo iniciar sesión",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     } finally {
       setEnviando(false);
     }

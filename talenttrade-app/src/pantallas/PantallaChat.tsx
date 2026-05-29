@@ -1,19 +1,21 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { peticionApi } from "../servicios/clienteApi";
 import { Pantalla } from "../componentes/Pantalla";
 import { EstadoVacio } from "../componentes/EstadoVacio";
 import type { ParametrosNavegacionPrincipal } from "../navegacion/tiposNavegacion";
 import { useAutenticacion } from "../proveedores/ProveedorAutenticacion";
+import { useAviso } from "../proveedores/ProveedorAvisos";
 import type { Mensaje } from "../tipos/tiposApi";
 
 type PropiedadesPantallaChat = NativeStackScreenProps<ParametrosNavegacionPrincipal, "Conversacion">;
 
 export function PantallaChat({ route: ruta }: PropiedadesPantallaChat) {
   const { token, usuario } = useAutenticacion();
+  const aviso = useAviso();
   const clienteConsultas = useQueryClient();
   const [mensaje, setMensaje] = useState("");
   const { conversacionId, titulo } = ruta.params;
@@ -36,7 +38,10 @@ export function PantallaChat({ route: ruta }: PropiedadesPantallaChat) {
       await clienteConsultas.invalidateQueries({ queryKey: ["mensajes", conversacionId] });
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo enviar", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo enviar",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     }
   });
 

@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 import { peticionApi } from "../servicios/clienteApi";
 import { CabeceraDestacada } from "../componentes/CabeceraDestacada";
@@ -9,6 +9,7 @@ import { Tarjeta } from "../componentes/Tarjeta";
 import { EstadoVacio } from "../componentes/EstadoVacio";
 import { Pantalla } from "../componentes/Pantalla";
 import { useAutenticacion } from "../proveedores/ProveedorAutenticacion";
+import { useAviso } from "../proveedores/ProveedorAvisos";
 import type { Sesion, Valoracion } from "../tipos/tiposApi";
 
 const PUNTUACIONES = [1, 2, 3, 4, 5] as const;
@@ -40,6 +41,7 @@ function obtenerColorEstado(estado: Sesion["estado"]) {
 export function PantallaSesiones() {
   const navegacion = useNavigation();
   const { token, usuario } = useAutenticacion();
+  const aviso = useAviso();
   const clienteConsultas = useQueryClient();
   const [puntuaciones, setPuntuaciones] = useState<Record<string, number>>({});
   const [comentarios, setComentarios] = useState<Record<string, string>>({});
@@ -64,12 +66,20 @@ export function PantallaSesiones() {
         token,
         body: JSON.stringify({ estado })
       }),
-    onSuccess: async () => {
+    onSuccess: async (_resultado, variables) => {
       await clienteConsultas.invalidateQueries({ queryKey: ["sesiones"] });
       await clienteConsultas.invalidateQueries({ queryKey: ["valoraciones"] });
+      if (variables.estado === "COMPLETADA") {
+        aviso.exito("Sesión completada", "Ya puedes valorar la experiencia.");
+      } else {
+        aviso.info("Sesión cancelada", "Hemos avisado a la otra persona.");
+      }
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo actualizar la sesión", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo actualizar la sesión",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     }
   });
 
@@ -101,10 +111,13 @@ export function PantallaSesiones() {
         ...comentariosActuales,
         [variables.sesionId]: ""
       }));
-      Alert.alert("Valoración enviada", "Gracias por valorar la experiencia.");
+      aviso.exito("Valoración enviada", "Gracias por valorar la experiencia.");
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo crear la valoración", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo crear la valoración",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     }
   });
 

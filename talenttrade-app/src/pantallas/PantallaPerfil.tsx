@@ -1,14 +1,15 @@
-import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Alert, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 import { peticionApi } from "../servicios/clienteApi";
 import { CabeceraDestacada } from "../componentes/CabeceraDestacada";
+import { SelectorTemporal } from "../componentes/SelectorTemporal";
 import { Tarjeta } from "../componentes/Tarjeta";
 import { EstadoVacio } from "../componentes/EstadoVacio";
 import { Pantalla } from "../componentes/Pantalla";
 import { useAutenticacion } from "../proveedores/ProveedorAutenticacion";
+import { useAviso } from "../proveedores/ProveedorAvisos";
 import type { DiaSemana, Disponibilidad, HabilidadUsuario, Usuario } from "../tipos/tiposApi";
 
 const DIAS_SEMANA: { valor: DiaSemana; etiqueta: string }[] = [
@@ -63,6 +64,7 @@ function formatearHoraHHmm(fecha: Date) {
 
 export function PantallaPerfil() {
   const { token, usuario, cerrarSesion, refrescarUsuario } = useAutenticacion();
+  const aviso = useAviso();
   const clienteConsultas = useQueryClient();
   const [nombre, setNombre] = useState("");
   const [biografia, setBiografia] = useState("");
@@ -70,28 +72,6 @@ export function PantallaPerfil() {
   const [diaSemana, setDiaSemana] = useState<DiaSemana>("MON");
   const [horaInicio, setHoraInicio] = useState<Date>(() => crearFechaConHora(18, 0));
   const [horaFin, setHoraFin] = useState<Date>(() => crearFechaConHora(20, 0));
-  const [mostrarPickerInicio, setMostrarPickerInicio] = useState(false);
-  const [mostrarPickerFin, setMostrarPickerFin] = useState(false);
-
-  function manejarCambioHoraInicio(evento: DateTimePickerEvent, horaSeleccionada?: Date) {
-    if (Platform.OS !== "ios") {
-      setMostrarPickerInicio(false);
-    }
-
-    if (evento.type === "set" && horaSeleccionada) {
-      setHoraInicio(horaSeleccionada);
-    }
-  }
-
-  function manejarCambioHoraFin(evento: DateTimePickerEvent, horaSeleccionada?: Date) {
-    if (Platform.OS !== "ios") {
-      setMostrarPickerFin(false);
-    }
-
-    if (evento.type === "set" && horaSeleccionada) {
-      setHoraFin(horaSeleccionada);
-    }
-  }
 
   const consultaPerfil = useQuery({
     queryKey: ["perfil"],
@@ -133,10 +113,13 @@ export function PantallaPerfil() {
     onSuccess: async () => {
       await refrescarUsuario();
       await clienteConsultas.invalidateQueries({ queryKey: ["perfil"] });
-      Alert.alert("Perfil actualizado", "Tus datos se han guardado correctamente.");
+      aviso.exito("Perfil actualizado", "Tus datos se han guardado correctamente.");
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo actualizar", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo actualizar",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     }
   });
 
@@ -149,9 +132,13 @@ export function PantallaPerfil() {
     onSuccess: async () => {
       await refrescarUsuario();
       await clienteConsultas.invalidateQueries({ queryKey: ["perfil"] });
+      aviso.info("Habilidad eliminada", "Ya no aparece en tu perfil.");
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo eliminar la habilidad", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo eliminar la habilidad",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     }
   });
 
@@ -173,10 +160,13 @@ export function PantallaPerfil() {
     },
     onSuccess: async () => {
       await clienteConsultas.invalidateQueries({ queryKey: ["disponibilidad"] });
-      Alert.alert("Disponibilidad guardada", "Ese hueco ya aparece en tu perfil.");
+      aviso.exito("Disponibilidad guardada", "Ese hueco ya aparece en tu perfil.");
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo guardar", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo guardar",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     }
   });
 
@@ -188,9 +178,13 @@ export function PantallaPerfil() {
       }),
     onSuccess: async () => {
       await clienteConsultas.invalidateQueries({ queryKey: ["disponibilidad"] });
+      aviso.info("Disponibilidad eliminada", "Ese hueco ha desaparecido de tu perfil.");
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo eliminar", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo eliminar",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     }
   });
 
@@ -443,57 +437,13 @@ export function PantallaPerfil() {
         <View style={{ flexDirection: "row", gap: 12 }}>
           <View style={{ flex: 1, gap: 6 }}>
             <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Desde</Text>
-            <Pressable
-              onPress={() => setMostrarPickerInicio(true)}
-              style={{
-                borderWidth: 1,
-                borderColor: "#d8c9ac",
-                borderRadius: 18,
-                backgroundColor: "#fff",
-                paddingHorizontal: 16,
-                paddingVertical: 16
-              }}
-            >
-              <Text style={{ color: "#16283c", fontWeight: "600" }}>{formatearHoraHHmm(horaInicio)}</Text>
-            </Pressable>
+            <SelectorTemporal modo="time" valor={horaInicio} alCambiar={setHoraInicio} />
           </View>
           <View style={{ flex: 1, gap: 6 }}>
             <Text style={{ color: "#7b5d1d", fontWeight: "800", fontSize: 12 }}>Hasta</Text>
-            <Pressable
-              onPress={() => setMostrarPickerFin(true)}
-              style={{
-                borderWidth: 1,
-                borderColor: "#d8c9ac",
-                borderRadius: 18,
-                backgroundColor: "#fff",
-                paddingHorizontal: 16,
-                paddingVertical: 16
-              }}
-            >
-              <Text style={{ color: "#16283c", fontWeight: "600" }}>{formatearHoraHHmm(horaFin)}</Text>
-            </Pressable>
+            <SelectorTemporal modo="time" valor={horaFin} alCambiar={setHoraFin} />
           </View>
         </View>
-
-        {mostrarPickerInicio ? (
-          <DateTimePicker
-            value={horaInicio}
-            mode="time"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            is24Hour
-            onChange={manejarCambioHoraInicio}
-          />
-        ) : null}
-
-        {mostrarPickerFin ? (
-          <DateTimePicker
-            value={horaFin}
-            mode="time"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            is24Hour
-            onChange={manejarCambioHoraFin}
-          />
-        ) : null}
 
         <Pressable
           onPress={() => crearDisponibilidadMutation.mutate()}

@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 import { peticionApi } from "../servicios/clienteApi";
 import { CabeceraDestacada } from "../componentes/CabeceraDestacada";
@@ -9,6 +9,7 @@ import { Tarjeta } from "../componentes/Tarjeta";
 import { Pantalla } from "../componentes/Pantalla";
 import { EstadoVacio } from "../componentes/EstadoVacio";
 import { useAutenticacion } from "../proveedores/ProveedorAutenticacion";
+import { useAviso } from "../proveedores/ProveedorAvisos";
 import type { Habilidad } from "../tipos/tiposApi";
 
 const NIVELES = ["INICIAL", "MEDIO", "AVANZADO"] as const;
@@ -17,6 +18,7 @@ const TIPOS = ["OFRECER", "APRENDER"] as const;
 export function PantallaHabilidades() {
   const navegacion = useNavigation();
   const { token, refrescarUsuario } = useAutenticacion();
+  const aviso = useAviso();
   const clienteConsultas = useQueryClient();
   const [busqueda, setBusqueda] = useState("");
   const [tipoSeleccionado, setTipoSeleccionado] = useState<(typeof TIPOS)[number]>("OFRECER");
@@ -42,13 +44,16 @@ export function PantallaHabilidades() {
       await clienteConsultas.invalidateQueries({ queryKey: ["habilidades"] });
       await clienteConsultas.invalidateQueries({ queryKey: ["perfil"] });
       await refrescarUsuario();
-      Alert.alert("Habilidad guardada", "Tu perfil ya se ha actualizado.", [
-        { text: "Añadir otra", style: "cancel" },
-        { text: "Ver perfil", onPress: () => navegacion.navigate("Perfil" as never) }
-      ]);
+      aviso.exito("Habilidad guardada", "Tu perfil ya se ha actualizado.", {
+        etiqueta: "Ver perfil",
+        alPulsar: () => navegacion.navigate("Perfil" as never)
+      });
     },
     onError: (errorCapturado) => {
-      Alert.alert("No se pudo guardar", errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado.");
+      aviso.error(
+        "No se pudo guardar",
+        errorCapturado instanceof Error ? errorCapturado.message : "Error inesperado."
+      );
     }
   });
 

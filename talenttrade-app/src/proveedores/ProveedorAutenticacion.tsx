@@ -1,4 +1,3 @@
-import * as SecureStore from "expo-secure-store";
 import {
   createContext,
   useContext,
@@ -7,7 +6,9 @@ import {
   useState,
   type PropsWithChildren
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
+import { borrarValor, guardarValor, leerValor } from "../servicios/almacenamientoSeguro";
 import { peticionApi } from "../servicios/clienteApi";
 import type { RespuestaAutenticacion, Usuario } from "../tipos/tiposApi";
 
@@ -26,6 +27,7 @@ type ContextoAutenticacion = {
 const ContextoAutenticacion = createContext<ContextoAutenticacion | null>(null);
 
 export function ProveedorAutenticacion({ children }: PropsWithChildren) {
+  const clienteConsultas = useQueryClient();
   const [token, setToken] = useState<string | null>(null);
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -33,7 +35,7 @@ export function ProveedorAutenticacion({ children }: PropsWithChildren) {
   useEffect(() => {
     async function cargarSesionInicial() {
       try {
-        const tokenGuardado = await SecureStore.getItemAsync(CLAVE_TOKEN);
+        const tokenGuardado = await leerValor(CLAVE_TOKEN);
 
         if (!tokenGuardado) {
           setCargando(false);
@@ -44,7 +46,7 @@ export function ProveedorAutenticacion({ children }: PropsWithChildren) {
         const perfil = await peticionApi<{ usuario: Usuario }>("/api/usuarios/yo", { token: tokenGuardado });
         setUsuario(perfil.usuario);
       } catch {
-        await SecureStore.deleteItemAsync(CLAVE_TOKEN);
+        await borrarValor(CLAVE_TOKEN);
         setToken(null);
         setUsuario(null);
       } finally {
@@ -56,7 +58,8 @@ export function ProveedorAutenticacion({ children }: PropsWithChildren) {
   }, []);
 
   async function guardarSesion(respuestaAutenticacion: RespuestaAutenticacion) {
-    await SecureStore.setItemAsync(CLAVE_TOKEN, respuestaAutenticacion.token);
+    await guardarValor(CLAVE_TOKEN, respuestaAutenticacion.token);
+    clienteConsultas.clear();
     setToken(respuestaAutenticacion.token);
     setUsuario(respuestaAutenticacion.usuario);
   }
@@ -80,9 +83,10 @@ export function ProveedorAutenticacion({ children }: PropsWithChildren) {
   }
 
   async function cerrarSesion() {
-    await SecureStore.deleteItemAsync(CLAVE_TOKEN);
+    await borrarValor(CLAVE_TOKEN);
     setToken(null);
     setUsuario(null);
+    clienteConsultas.clear();
   }
 
   async function refrescarUsuario() {
