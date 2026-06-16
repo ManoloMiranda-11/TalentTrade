@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserSkillType {
+  OFFER
+  WANT
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum MatchStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum DayOfWeek {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+
+model User {
+  id                   String         @id @default(uuid()) @db.Uuid
+  email                String         @unique
+  passwordHash         String         @map("password_hash")
+  name                 String
+  bio                  String?
+  avatarUrl            String?        @map("avatar_url")
+  city                 String?
+  latitude             Float?
+  longitude            Float?
+  createdAt            DateTime       @default(now()) @map("created_at")
+  updatedAt            DateTime       @updatedAt @map("updated_at")
+  userSkills           UserSkill[]
+  initiatedMatches     Match[]        @relation("MatchRequester")
+  receivedMatches      Match[]        @relation("MatchReceiver")
+  messages             Message[]
+  taughtSessions       Session[]      @relation("SessionTeacher")
+  learnedSessions      Session[]      @relation("SessionLearner")
+  writtenReviews       Review[]       @relation("ReviewAuthor")
+  receivedReviews      Review[]       @relation("ReviewTarget")
+  availabilities       Availability[]
+
+  @@map("users")
+}
+
+model Skill {
+  id               String      @id @default(uuid()) @db.Uuid
+  name             String      @unique
+  category         String?
+  icon             String?
+  userSkills       UserSkill[]
+  offeredInMatches Match[]     @relation("RequestedOfferSkill")
+  wantedInMatches  Match[]     @relation("RequestedWantSkill")
+  sessions         Session[]
+
+  @@map("skills")
+}
+
+model UserSkill {
+  id        String        @id @default(uuid()) @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  skillId   String        @map("skill_id") @db.Uuid
+  type      UserSkillType
+  level     SkillLevel
+  createdAt DateTime      @default(now()) @map("created_at")
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill     Skill         @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId, type])
+  @@map("user_skills")
+}
+
+model Match {
+  id                   String      @id @default(uuid()) @db.Uuid
+  requesterId          String      @map("requester_id") @db.Uuid
+  receiverId           String      @map("receiver_id") @db.Uuid
+  requesterOfferSkillId String     @map("requester_offer_skill_id") @db.Uuid
+  requesterWantSkillId String      @map("requester_want_skill_id") @db.Uuid
+  status               MatchStatus @default(PENDING)
+  createdAt            DateTime    @default(now()) @map("created_at")
+  updatedAt            DateTime    @updatedAt @map("updated_at")
+  requester            User        @relation("MatchRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver             User        @relation("MatchReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  requesterOfferSkill  Skill       @relation("RequestedOfferSkill", fields: [requesterOfferSkillId], references: [id])
+  requesterWantSkill   Skill       @relation("RequestedWantSkill", fields: [requesterWantSkillId], references: [id])
+  conversation         Conversation?
+  sessions             Session[]
+
+  @@unique([requesterId, receiverId, requesterOfferSkillId, requesterWantSkillId])
+  @@map("matches")
+}
+
+model Conversation {
+  id        String    @id @default(uuid()) @db.Uuid
+  matchId   String    @unique @map("match_id") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at")
+  match     Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(uuid()) @db.Uuid
+  conversationId String       @map("conversation_id") @db.Uuid
+  senderId       String       @map("sender_id") @db.Uuid
+  content        String
+  isRead         Boolean      @default(false) @map("is_read")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Session {
+  id              String        @id @default(uuid()) @db.Uuid
+  matchId         String        @map("match_id") @db.Uuid
+  skillTaughtId   String        @map("skill_taught_id") @db.Uuid
+  teacherId       String        @map("teacher_id") @db.Uuid
+  learnerId       String        @map("learner_id") @db.Uuid
+  scheduledAt     DateTime      @map("scheduled_at")
+  durationMinutes Int           @map("duration_minutes")
+  status          SessionStatus @default(SCHEDULED)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  match           Match         @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  skillTaught     Skill         @relation(fields: [skillTaughtId], references: [id])
+  teacher         User          @relation("SessionTeacher", fields: [teacherId], references: [id])
+  learner         User          @relation("SessionLearner", fields: [learnerId], references: [id])
+  reviews         Review[]
+
+  @@map("sessions")
+}
+
+model Review {
+  id         String    @id @default(uuid()) @db.Uuid
+  sessionId  String    @map("session_id") @db.Uuid
+  reviewerId String    @map("reviewer_id") @db.Uuid
+  reviewedId String    @map("reviewed_id") @db.Uuid
+  rating     Int
+  comment    String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+  session    Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  reviewer   User      @relation("ReviewAuthor", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewed   User      @relation("ReviewTarget", fields: [reviewedId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, reviewerId])
+  @@map("reviews")
+}
+
+model Availability {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  dayOfWeek DayOfWeek @map("day_of_week")
+  startTime DateTime  @db.Time(0) @map("start_time")
+  endTime   DateTime  @db.Time(0) @map("end_time")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dayOfWeek, startTime, endTime])
+  @@map("availabilities")
+}

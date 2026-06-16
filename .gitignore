@@ -1,0 +1,45 @@
+# Dependencias
+node_modules
+
+# Compilados
+dist
+
+# Variables de entorno
+.env
+.env.local
+
+# Expo
+.expo
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage
+
+# Base de datos local
+prisma/dev.db
+
+# Documentos de trabajo del autor (no parte del repo)
+Memoria_TalentTrade.docx
+*.pptx
+*.pdf
+memoria_referencia.txt
+slides_qa/
+DOCUMENTACION_TECNICA.md
+GUIA_ESTUDIO.md
+GUIA_ESTUDIO_RAPIDA.md
+
+# Carpetas de trabajo auxiliares (no parte del proyecto)
+unpacked_orig/
+work/
+
+# Scripts auxiliares del autor (no parte del proyecto)
+generar_memoria.js
+generar_presentacion.js
+generate_word.py
+
+# Logs
+*.log
+npm-debug.log*

@@ -1,0 +1,14 @@
+flowchart TD
+    Inicio{"¿Hay sesion guardada?"}
+    Inicio -->|"No"| Login["Inicio de sesion"]
+    Login <--> Registro["Crear cuenta"]
+    Inicio -->|"Si"| Tabs["Pestañas principales"]
+
+    Tabs --> Perfil["Perfil<br/>(datos + disponibilidad)"]
+    Tabs --> Habilidades["Habilidades<br/>(ofrecer / aprender)"]
+    Tabs --> Descubrir["Descubrir<br/>(personas compatibles)"]
+    Tabs --> Coincidencias["Coincidencias<br/>(solicitudes)"]
+    Tabs --> Sesiones["Sesiones<br/>(programar + valorar)"]
+
+    Coincidencias --> Chat["Chat<br/>(pantalla independiente)"]
+    Descubrir -.->|"proponer"| Coincidencias

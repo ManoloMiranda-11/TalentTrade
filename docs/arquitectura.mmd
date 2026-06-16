@@ -1,0 +1,29 @@
+flowchart LR
+    subgraph App["App movil - Expo / React Native"]
+        direction TB
+        Pantallas["Pantallas<br/>(Perfil, Descubrir, Chat...)"]
+        Componentes["Componentes reutilizables"]
+        Query["TanStack Query<br/>(cache y refresco)"]
+        Cliente["clienteApi<br/>(fetch + token JWT)"]
+        Pantallas --> Componentes
+        Pantallas --> Query
+        Query --> Cliente
+    end
+
+    subgraph Back["Backend - Node + Express"]
+        direction TB
+        Rutas["Rutas REST /api"]
+        Middlewares["Middlewares<br/>(autenticacion, errores)"]
+        Validacion["Validacion con Zod"]
+        Serializadores["Serializadores<br/>(respuestas en español)"]
+        Prisma["Prisma Client"]
+        Rutas --> Middlewares
+        Rutas --> Validacion
+        Rutas --> Serializadores
+        Rutas --> Prisma
+    end
+
+    DB[("PostgreSQL")]
+
+    Cliente -->|"HTTPS - JSON<br/>GET/POST/PATCH/DELETE"| Rutas
+    Prisma -->|"SQL"| DB

@@ -1,0 +1,87 @@
+erDiagram
+    User ||--o{ UserSkill : "tiene"
+    Skill ||--o{ UserSkill : "se usa en"
+    User ||--o{ Match : "solicita"
+    User ||--o{ Match : "recibe"
+    Skill ||--o{ Match : "ofrecida"
+    Skill ||--o{ Match : "deseada"
+    Match ||--o| Conversation : "genera"
+    Conversation ||--o{ Message : "contiene"
+    User ||--o{ Message : "envia"
+    Match ||--o{ Session : "programa"
+    Skill ||--o{ Session : "enseñada en"
+    User ||--o{ Session : "enseña"
+    User ||--o{ Session : "aprende"
+    Session ||--o{ Review : "recibe"
+    User ||--o{ Review : "escribe"
+    User ||--o{ Review : "es valorado"
+    User ||--o{ Availability : "define"
+
+    User {
+        uuid id PK
+        string email UK
+        string passwordHash
+        string name
+        string bio
+        string city
+        datetime createdAt
+    }
+    Skill {
+        uuid id PK
+        string name UK
+        string category
+        string icon
+    }
+    UserSkill {
+        uuid id PK
+        uuid userId FK
+        uuid skillId FK
+        enum type
+        enum level
+    }
+    Match {
+        uuid id PK
+        uuid requesterId FK
+        uuid receiverId FK
+        uuid requesterOfferSkillId FK
+        uuid requesterWantSkillId FK
+        enum status
+    }
+    Conversation {
+        uuid id PK
+        uuid matchId FK
+        datetime createdAt
+    }
+    Message {
+        uuid id PK
+        uuid conversationId FK
+        uuid senderId FK
+        string content
+        boolean isRead
+        datetime createdAt
+    }
+    Session {
+        uuid id PK
+        uuid matchId FK
+        uuid skillTaughtId FK
+        uuid teacherId FK
+        uuid learnerId FK
+        datetime scheduledAt
+        int durationMinutes
+        enum status
+    }
+    Review {
+        uuid id PK
+        uuid sessionId FK
+        uuid reviewerId FK
+        uuid reviewedId FK
+        int rating
+        string comment
+    }
+    Availability {
+        uuid id PK
+        uuid userId FK
+        enum dayOfWeek
+        time startTime
+        time endTime
+    }
